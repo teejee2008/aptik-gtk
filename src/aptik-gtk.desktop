@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Aptik GTK
+MimeType=
+Exec=aptik-gtk
+Type=Application
+GenericName=System Migration Utility
+Terminal=false
+Icon=aptik-gtk
+Comment=System Migration Utility
+X-KDE-StartupNotify=false
+Categories=System;
+Name[en_IN]=Aptik GTK
