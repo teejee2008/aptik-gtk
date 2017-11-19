@@ -39,57 +39,15 @@ public class MainWindow : Window {
 
 	private Grid grid;
 
-	private TerminalWindow termwin;
-
-	private Toolbar toolbar_bottom;
-	private ToolButton btn_donate;
-	private ToolButton btn_about;
-
 	private Gtk.Entry txt_basepath;
-	private Gtk.Entry txt_password;
 
-	private Button btn_restore_packages;
-	private Button btn_backup_packages;
-
-	private Button btn_restore_repos;
-	private Button btn_backup_repos;
-	
-	private Button btn_restore_cache;
-	private Button btn_backup_cache;
-
-	private Button btn_restore_config;
-	private Button btn_backup_config;
-
-	private Button btn_restore_theme;
-	private Button btn_backup_theme;
-
-	private Button btn_restore_mount;
-	private Button btn_backup_mount;
-
-	private Button btn_restore_home;
-	private Button btn_backup_home;
-
-	private Button btn_restore_crontab;
-	private Button btn_backup_crontab;
-	
-	private Button btn_restore_user;
-	private Button btn_backup_user;
-
-	private ProgressBar progressbar;
-	private Label lbl_status;
-
-	//private TerminalWindow term;
-
-	int def_width = 450;
-	int def_height = -1;
+	private TerminalWindow termwin;
 
 	int icon_size_list = 22;
 	int button_width = 85;
 	int button_height = 15;
 
-	string app_config_path = "";
-
-	public MainWindow () {
+	public MainWindow() {
 		
 		title = AppName + " v" + AppVersion;
 		window_position = WindowPosition.CENTER;
@@ -101,7 +59,7 @@ public class MainWindow : Window {
 		//vboxMain
 		vbox_main = new Box (Orientation.VERTICAL, 6);
 		vbox_main.margin = 6;
-		vbox_main.set_size_request (def_width, def_height);
+		//vbox_main.set_size_request (def_width, def_height);
 		add (vbox_main);
 
 		//actions ---------------------------------------------
@@ -134,6 +92,7 @@ public class MainWindow : Window {
 		
 		var hbox = new Box (Gtk.Orientation.HORIZONTAL, 6);
 		hbox.margin_bottom = 6;
+		hbox.margin_right = 6;
 		vbox_main.pack_start (hbox, false, true, 0);
 
 		// entry
@@ -144,12 +103,6 @@ public class MainWindow : Window {
 		entry.margin_left = 6;
 		hbox.pack_start (entry, true, true, 0);
 		txt_basepath = entry;
-		
-		/*if ((App.backup_dir != null) && dir_exists (App.backup_dir)) {
-			var path = App.backup_dir;
-			path = path.has_suffix("/") ? path[0:path.length-1] : path;
-			txt_basepath.text = path;
-		}*/
 
 		entry.changed.connect(() => {
 			App.basepath = txt_basepath.text;
@@ -217,10 +170,9 @@ public class MainWindow : Window {
 		//grid
 		grid = new Grid();
 		grid.set_column_spacing(6);
-		grid.set_row_spacing(6);
+		grid.set_row_spacing(3);
 		grid.margin_left = 6;
 		grid.margin_bottom = 6;
-		grid.margin_right = 6;
 		vbox_main.pack_start (grid, false, true, 0);
 
 		int row = -1;
@@ -274,31 +226,40 @@ public class MainWindow : Window {
 		grid.attach(label, 1, row, 1, 1);
 	}
 
-	private Gtk.Button add_section_button_view(int row) {
+	private Gtk.ButtonBox add_section_actions(int row){
 
-		var button = new Gtk.Button.with_label (_("View"));
-		button.set_size_request(button_width, button_height);
-		grid.attach(button, 2, row, 1, 1);
+		var bbox = new Gtk.ButtonBox(Orientation.HORIZONTAL);
+		bbox.set_layout(Gtk.ButtonBoxStyle.EXPAND);
+		bbox.set_homogeneous(false);
+		bbox.margin_left = 24;
+		grid.attach(bbox, 2, row, 1, 1);
+		return bbox;
+	}
+
+	private Gtk.Button add_button(Gtk.ButtonBox bbox, string text) {
+
+		var button = new Gtk.Button.with_label(text);
+		//button.set_size_request(button_width, button_height);
+		bbox.add(button);
 		return button;
 	}
 
-	private Gtk.Button add_section_button_backup(int row) {
+	private Gtk.Button add_button_view(Gtk.ButtonBox bbox) {
 
-		var button = new Gtk.Button.with_label (_("Backup"));
-		button.set_size_request(button_width, button_height);
-		grid.attach(button, 3, row, 1, 1);
-		return button;
+		return add_button(bbox, _("Manage"));
 	}
 
-	private Gtk.Button add_section_button_restore(int row) {
+	private Gtk.Button add_button_backup(Gtk.ButtonBox bbox) {
 
-		var button = new Gtk.Button.with_label (_("Restore"));
-		button.set_size_request(button_width, button_height);
-		grid.attach(button, 4, row, 1, 1);
-		return button;
+		return add_button(bbox, _("Backup"));
 	}
 
-	private void execute(string cmd){
+	private Gtk.Button add_button_restore(Gtk.ButtonBox bbox) {
+
+		return add_button(bbox, _("Restore"));
+	}
+
+	public void execute(string cmd){
 
 		termwin.reset();
 		termwin.show_all();		
@@ -313,14 +274,9 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_REPOS);
 
-		var bbox = new Gtk.ButtonBox(Orientation.HORIZONTAL);
-		bbox.set_layout(Gtk.ButtonBoxStyle.CENTER);
-		bbox.margin = 3;
-		vbox_main.add(bbox);
+		var bbox = add_section_actions(row);
 
-		var button = add_section_button_view(row);
-		btn_backup_repos = button;
-
+		var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -328,9 +284,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --list-repos --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_backup(row);
-		btn_backup_repos = button;
-
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -338,9 +292,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-repos --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -355,9 +307,17 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_CACHE);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
+		var bbox = add_section_actions(row);
 
+		var button = add_button_view(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
+
+			//execute("pkexec aptik --list-cache --basepath '%s'".printf(App.basepath));
+		});
+
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -365,9 +325,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-cache --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -382,24 +340,37 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_PACKAGES);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
-
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
 
-			execute("pkexec aptik --backup-packages --basepath '%s'".printf(App.basepath));
+			var win = new PackageWindow(this, false);
+			win.show_all();
+			
+			//execute("pkexec aptik --list-installed-user --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
-			execute("pkexec aptik --restore-packages --basepath '%s'".printf(App.basepath));
+			var win = new PackageWindow(this, false);
+			win.show_all();
+			
+			//execute("pkexec aptik --backup-packages --basepath '%s'".printf(App.basepath));
+		});
+
+		button = add_button_restore(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
+
+			var win = new PackageWindow(this, true);
+			win.show_all();
+			
+			//execute("pkexec aptik --restore-packages --basepath '%s'".printf(App.basepath));
 		});
 	}
 
@@ -409,9 +380,17 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_USERS);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_view(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
 
+			execute("pkexec aptik --list-users --basepath '%s'".printf(App.basepath));
+		});
+
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -419,9 +398,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-users --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -436,9 +413,17 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_GROUPS);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_view(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
 
+			execute("pkexec aptik --list-groups --basepath '%s'".printf(App.basepath));
+		});
+
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -446,9 +431,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-groups --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -463,9 +446,17 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_HOME);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_view(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
 
+			execute("pkexec aptik --list-home --basepath '%s'".printf(App.basepath));
+		});
+
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -473,9 +464,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-home --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -490,9 +479,17 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_MOUNTS);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_view(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
 
+			execute("pkexec aptik --list-mounts --basepath '%s'".printf(App.basepath));
+		});
+
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -500,9 +497,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-mounts --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -517,9 +512,17 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_ICONS);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_view(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
 
+			execute("pkexec aptik --list-icons --basepath '%s'".printf(App.basepath));
+		});
+
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -527,9 +530,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-icons --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -544,9 +545,17 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_THEMES);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_view(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
 
+			execute("pkexec aptik --list-themes --basepath '%s'".printf(App.basepath));
+		});
+
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -554,9 +563,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-themes --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -571,9 +578,19 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_FONTS);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_view(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
 
+			execute("pkexec aptik --list-fonts --basepath '%s'".printf(App.basepath));
+		});
+
+		button.sensitive = false;
+
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -581,9 +598,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-fonts --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -598,9 +613,19 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_DCONF);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_view(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
 
+			//execute("pkexec aptik --list-dconf --basepath '%s'".printf(App.basepath));
+		});
+
+		button.sensitive = false;
+
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -608,16 +633,12 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-dconf --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
-			var win = new TerminalWindow.with_parent(this, false, true);
-			win.start_shell();		
-			win.execute_command("pkexec aptik --restore-dconf --basepath '%s'".printf(App.basepath));
+			execute("pkexec aptik --restore-dconf --basepath '%s'".printf(App.basepath));
 		});
 	}
 
@@ -627,9 +648,19 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_CRON);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_view(bbox);
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
 
+			//execute("pkexec aptik --list-cron --basepath '%s'".printf(App.basepath));
+		});
+
+		button.sensitive = false;
+
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -637,16 +668,12 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-cron --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
-			var win = new TerminalWindow.with_parent(this, false, true);
-			win.start_shell();		
-			win.execute_command("pkexec aptik --restore-cron --basepath '%s'".printf(App.basepath));
+			execute("pkexec aptik --restore-cron --basepath '%s'".printf(App.basepath));
 		});
 	}
 
@@ -656,9 +683,9 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_ALL);
 
-		var button = add_section_button_backup(row);
-		btn_backup_repos = button;
-
+		var bbox = add_section_actions(row);
+		
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -666,9 +693,7 @@ public class MainWindow : Window {
 			execute("pkexec aptik --backup-all --basepath '%s'".printf(App.basepath));
 		});
 
-		button = add_section_button_restore(row);
-		btn_restore_repos = button;
-
+		button = add_button_restore(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -727,8 +752,8 @@ public class MainWindow : Window {
 			return true;
 		}
 		else {
-			string title = _("Backup Directory Not Selected");
-			string msg = _("Select the backup directory");
+			string title = _("Backup Location Not Found");
+			string msg = _("Select a valid path for backup location");
 			gtk_messagebox(title, msg, this, false);
 			return false;
 		}

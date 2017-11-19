@@ -39,7 +39,7 @@ public class TerminalWindow : Gtk.Window {
 	private TermBox term;
 	private Gtk.Button btn_cancel;
 
-	private int def_width = 900;
+	private int def_width = 800;
 	private int def_height = 500;
 
 	private Gtk.Window parent_win = null;

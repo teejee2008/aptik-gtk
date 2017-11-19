@@ -249,6 +249,22 @@ namespace TeeJee.GtkHelper{
 
 		return iter_find;
 	}
+
+	public int gtk_iter_count(Gtk.TreeModelFilter model){
+
+		int count = 0;
+		
+		TreeIter iter;
+		bool iterExists = model.get_iter_first (out iter);
+		while (iterExists){
+			//if (return_next){
+				count++;
+			//}
+			iterExists = model.iter_next (ref iter);
+		}
+
+		return count;
+	}
 	
 	// combo ---------
 	

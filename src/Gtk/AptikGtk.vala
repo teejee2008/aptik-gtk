@@ -51,6 +51,8 @@ public class AptikGtk : GLib.Object {
 
 	public string basepath = "";
 
+	public MainWindow main_window;
+
 	public static int main (string[] args) {
 		
 		set_locale();
@@ -68,6 +70,8 @@ public class AptikGtk : GLib.Object {
 		var window = new MainWindow();
 		window.destroy.connect(Gtk.main_quit);
 		window.show_all();
+
+		App.main_window = window;
 
 		//start event loop
 		Gtk.main();

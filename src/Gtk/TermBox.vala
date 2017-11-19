@@ -62,13 +62,16 @@ public class TermBox : Gtk.Box {
 
 		//scrolled
 		var scrolled = new Gtk.ScrolledWindow(null, null);
-		scrolled.set_shadow_type (ShadowType.ETCHED_IN);
+		scrolled.set_shadow_type(ShadowType.ETCHED_IN);
 		scrolled.expand = true;
+		scrolled.hscrollbar_policy = PolicyType.ALWAYS;
+		scrolled.vscrollbar_policy = PolicyType.ALWAYS;
 		this.add(scrolled);
 
 		//terminal
 		term = new Vte.Terminal();
 		term.expand = true;
+		term.set_size_request(2000,-1);
 		scrolled.add(term);
 		
 		term.input_enabled = true;
@@ -130,6 +133,9 @@ public class TermBox : Gtk.Box {
 			});
 
 			reset();
+
+			//string cmd = "setterm -linewrap off";
+			//feed_command(cmd);
 
 			log_debug("TermBox: start_shell(): started");
 		}
