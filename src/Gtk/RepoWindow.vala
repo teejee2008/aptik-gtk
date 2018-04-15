@@ -33,14 +33,6 @@ using TeeJee.System;
 using TeeJee.Misc;
 using TeeJee.GtkHelper;
 
-public class Item : GLib.Object{
-	
-	public string name = "";
-	public string desc = "";
-	public bool selected = false;
-	public bool installed = false;
-}
-
 public class RepoWindow : Window {
 
 	public Gee.ArrayList<Repo> repos = new Gee.ArrayList<Repo>();
@@ -64,6 +56,8 @@ public class RepoWindow : Window {
 	private bool is_running = false;
 	private bool is_restore_view = false;
 
+	private MainWindow main_window;
+
 	private bool is_backup_view{
 		get{
 			return !is_restore_view;
@@ -72,7 +66,7 @@ public class RepoWindow : Window {
 
 	// init -------------------------
 	
-	public RepoWindow(Window parent, bool restore) {
+	public RepoWindow(MainWindow parent, bool restore) {
 		
 		set_transient_for(parent);
 		set_modal(true);
@@ -81,6 +75,8 @@ public class RepoWindow : Window {
 		destroy.connect(()=>{
 			parent.present();
 		});
+
+		main_window = parent;
 		
 		init_window();
 	}
@@ -167,24 +163,24 @@ public class RepoWindow : Window {
 		col_select.set_cell_data_func (cell_select, (cell_layout, cell, model, iter) => {
 			
 			bool selected;
-			Item item;
-			model.get (iter, 0, out selected, 1, out item, -1);
+			Repo repo;
+			model.get (iter, 0, out selected, 1, out repo, -1);
 			(cell as Gtk.CellRendererToggle).active = selected;
-			(cell as Gtk.CellRendererToggle).sensitive = !is_restore_view || !item.installed;
+			(cell as Gtk.CellRendererToggle).sensitive = !is_restore_view || !repo.is_installed;
 		});
 
 		cell_select.toggled.connect((path) => {
 			
 			var model = (Gtk.ListStore)treeview.model;
 			bool selected;
-			Item item;
+			Repo repo;
 			TreeIter iter;
 
 			model.get_iter_from_string (out iter, path);
 			model.get (iter, 0, out selected);
-			model.get (iter, 1, out item);
+			model.get (iter, 1, out repo);
 			model.set (iter, 0, !selected);
-			item.selected = !selected;
+			repo.is_selected = !selected;
 		});
 
 		// col_status ----------------------
@@ -210,20 +206,15 @@ public class RepoWindow : Window {
 		col_name.pack_start (cell_name, false);
 
 		col_name.set_cell_data_func (cell_name, (cell_layout, cell, model, iter) => {
-			Item item;
-			model.get (iter, 1, out item, -1);
-			(cell as Gtk.CellRendererText).text = item.name;
+			Repo repo;
+			model.get (iter, 1, out repo, -1);
+			(cell as Gtk.CellRendererText).text = repo.name;
 		});
 
 		// col_desc ----------------------
 
 		var col_desc = new Gtk.TreeViewColumn();
-		if (is_restore_view){
-			col_desc.title = _("Packages");
-		}
-		else{
-			col_desc.title = _("Packages");
-		}
+		col_desc.title = _("Packages");
 		col_desc.resizable = true;
 		treeview.append_column(col_desc);
 
@@ -232,9 +223,9 @@ public class RepoWindow : Window {
 		col_desc.pack_start (cell_desc, false);
 
 		col_desc.set_cell_data_func (cell_desc, (cell_layout, cell, model, iter) => {
-			Item item;
-			model.get (iter, 1, out item, -1);
-			(cell as Gtk.CellRendererText).text = item.desc;
+			Repo repo;
+			model.get (iter, 1, out repo, -1);
+			(cell as Gtk.CellRendererText).text = repo.desc;
 		});
 	}
 
@@ -397,7 +388,8 @@ public class RepoWindow : Window {
 		repos.clear();
 		
 		string std_out, std_err;
-		exec_sync("aptik --dump-repos", out std_out, out std_err);
+		string cmd = "aptik --dump-repos";
+		exec_sync(cmd, out std_out, out std_err);
 		
 		foreach(string line in std_out.split("\n")){
 
@@ -432,7 +424,7 @@ public class RepoWindow : Window {
 
 	private void restore_init(){
 
-		log_debug("RepoWindow.backup_init()");
+		log_debug("RepoWindow.restore_init()");
 		
 		var status_msg = _("Listing items from backup...");
 		var dlg = new ProgressWindow.with_parent(this, status_msg);
@@ -441,7 +433,7 @@ public class RepoWindow : Window {
 		
 		try {
 			is_running = true;
-			Thread.create<void> (backup_init_thread, true);
+			Thread.create<void> (restore_init_thread, true);
 		}
 		catch (ThreadError e) {
 			is_running = false;
@@ -467,8 +459,9 @@ public class RepoWindow : Window {
 		repos.clear();
 		
 		string std_out, std_err;
-		exec_sync("aptik --dump-repos-backup", out std_out, out std_err);
-		
+		string cmd = "aptik --dump-repos-backup --basepath '%s'".printf(escape_single_quote(App.basepath));
+		exec_sync(cmd, out std_out, out std_err);
+
 		foreach(string line in std_out.split("\n")){
 
 			if (line.strip().length == 0) { continue; }
@@ -502,10 +495,106 @@ public class RepoWindow : Window {
 
 	private void btn_backup_clicked(){
 
+		log_debug("RepoWindow.btn_backup_clicked()");
+		
+		//check if no action required
+		bool none_selected = true;
+		foreach(var repo in repos) {
+			if (repo.is_selected) {
+				none_selected = false;
+				break;
+			}
+		}
+		
+		if (none_selected) {
+			string title = _("No Items Selected");
+			string msg = _("Select items to backup");
+			gtk_messagebox(title, msg, this, false);
+			return;
+		}
+
+		string backup_path = create_backup_path(App.basepath);
+
+		// save exclude list ---------------------
+
+		string exclude_list = path_combine(backup_path, "exclude.list");
+		
+		string txt = "";
+		foreach(var repo in repos){
+			if (!repo.is_selected){
+				txt += "%s\n".printf(repo.name);
+				log_debug("unselected: %s".printf(repo.name));
+			}
+		}
+
+		file_write(exclude_list, txt, false);
+		chmod(exclude_list, "a+rwx");
+		log_debug("saved: %s".printf(exclude_list));
+
+		// save backup ---------------------
+
+		this.close();
+		
+		Timeout.add(100, ()=>{
+			main_window.execute("pkexec aptik --backup-repos --basepath '%s'".printf(App.basepath));
+			return false;
+		});
 	}
 
 	private void btn_restore_clicked(){
 
+		log_debug("RepoWindow.btn_backup_clicked()");
+		
+		//check if no action required
+		bool none_selected = true;
+		foreach(var repo in repos) {
+			if (repo.is_selected) {
+				none_selected = false;
+				break;
+			}
+		}
+		
+		if (none_selected) {
+			string title = _("No Items Selected");
+			string msg = _("Select items to restore");
+			gtk_messagebox(title, msg, this, false);
+			return;
+		}
+
+		string backup_path = create_backup_path(App.basepath);
+
+		// save exclude list ---------------------
+
+		string exclude_list = path_combine(backup_path, "exclude.list");
+		
+		string txt = "";
+		foreach(var repo in repos){
+			if (!repo.is_selected && !repo.is_installed){
+				txt += "%s\n".printf(repo.name);
+				log_debug("unselected: %s".printf(repo.name));
+			}
+		}
+		
+		file_write(exclude_list, txt, false);
+		chmod(exclude_list, "a+rwx");
+		log_debug("saved: %s".printf(exclude_list));
+		
+		// restore backup ---------------------
+
+		this.close();
+		
+		Timeout.add(100, ()=>{
+			main_window.execute("pkexec aptik --restore-repos --basepath '%s'".printf(App.basepath));
+			return false;
+		});
+	}
+
+	public string create_backup_path(string basepath){
+		
+		string backup_path = path_combine(basepath, "repos");
+		dir_create(backup_path);
+		chmod(backup_path, "a+rwx");
+		return backup_path;
 	}
 }
 

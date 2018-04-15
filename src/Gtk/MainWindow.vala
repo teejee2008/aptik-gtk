@@ -153,7 +153,7 @@ public class MainWindow : Window {
 
 		dialog.program_name = AppName;
 		dialog.comments = _("Settings & Data Migration Utility for Linux");
-		dialog.copyright = "Copyright © 2012-2018 %s (%s)".printf(AppAuthor, AppAuthorEmail);
+		dialog.copyright = "Copyright © 2012-2018\n%s (%s)".printf(AppAuthor, AppAuthorEmail);
 		dialog.version = AppVersion;
 		dialog.logo = get_app_icon(128); 
 

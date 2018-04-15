@@ -859,9 +859,10 @@ public class PackageWindow : Window {
 				break;
 			}
 		}
+		
 		if (none_selected) {
-			string title = _("No Packages Selected");
-			string msg = _("Select the packages to backup");
+			string title = _("No Items Selected");
+			string msg = _("Select items to backup");
 			gtk_messagebox(title, msg, this, false);
 			return;
 		}
@@ -1093,8 +1094,8 @@ public class PackageWindow : Window {
 		}
 		
 		if (none_selected) {
-			string title = _("Nothing To Do");
-			string msg = _("All packages are already installed, or no packages are selected for installation");
+			string title = _("No Items Selected");
+			string msg = _("All packages already installed, or no packages selected for installation.");
 			gtk_messagebox(title, msg, this, false);
 			return;
 		}

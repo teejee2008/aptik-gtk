@@ -111,7 +111,7 @@ public class DonationWindow : Dialog {
 		});
 
 		// issue tracker
-		button = new Gtk.LinkButton.with_label("", _("Issue Tracker ~ Report Issues, Request Features, Ask Questions"));
+		button = new Gtk.LinkButton.with_label("", _("Report Issues, Request Features, Ask Questions"));
 		button.set_tooltip_text("https://github.com/teejee2008/aptik-next/issues");
 		vbox_main.add(button);
 		button.clicked.connect(() => {

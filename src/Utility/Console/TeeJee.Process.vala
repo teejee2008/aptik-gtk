@@ -2,7 +2,7 @@
 /*
  * TeeJee.ProcessHelper.vala
  *
- * Copyright 2016 Tony George <teejeetech@gmail.com>
+ * Copyright 2012-18 Tony George <teejeetech@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@
  */
  
 namespace TeeJee.ProcessHelper{
-	
 	using TeeJee.Logging;
 	using TeeJee.FileSystem;
 	using TeeJee.Misc;
@@ -47,7 +46,7 @@ namespace TeeJee.ProcessHelper{
 			dir_create(TEMP_DIR);
 		}
 
-		log_debug("TEMP_DIR=" + TEMP_DIR);
+		//log_debug("TEMP_DIR=" + TEMP_DIR);
 	}
 
 	public string create_temp_subdir(){
@@ -73,8 +72,10 @@ namespace TeeJee.ProcessHelper{
 	    }
 	}
 	
-	public int exec_script_sync (string script, out string? std_out, out string? std_err,
-		bool supress_errors = false, bool run_as_admin = false, bool cleanup_tmp = true, bool print_to_terminal = false){
+	public int exec_script_sync (string script,
+		out string? std_out = null, out string? std_err = null,
+		bool supress_errors = false, bool run_as_admin = false,
+		bool cleanup_tmp = true, bool print_to_terminal = false){
 
 		/* Executes commands synchronously.
 		 * Pipes and multiple commands are fully supported.
@@ -82,11 +83,13 @@ namespace TeeJee.ProcessHelper{
 		 * std_out, std_err can be null. Output will be written to terminal if null.
 		 * */
 
+		std_out = "";
+		std_err = "";
+
 		string sh_file = save_bash_script_temp(script, null, true, supress_errors, run_as_admin);
 
-		std_err = "";
-		std_out = "";
-
+		//log_debug("exec_script_sync(): %s".printf(sh_file));
+		
 		try {
 			string[] argv = new string[1];
 			argv[0] = sh_file;
@@ -98,7 +101,7 @@ namespace TeeJee.ProcessHelper{
 			if (print_to_terminal){
 				
 				Process.spawn_sync (
-					TEMP_DIR, //working dir
+					file_parent(sh_file), //working dir
 					argv, //argv
 					env, //environment
 					SpawnFlags.SEARCH_PATH,
@@ -111,7 +114,7 @@ namespace TeeJee.ProcessHelper{
 			else{
 		
 				Process.spawn_sync (
-					TEMP_DIR, //working dir
+					file_parent(sh_file), //working dir
 					argv, //argv
 					env, //environment
 					SpawnFlags.SEARCH_PATH,
@@ -121,6 +124,15 @@ namespace TeeJee.ProcessHelper{
 					out exit_code
 					);
 			}
+
+			// Process.spawn_sync() exit_code is not reliable when executed as script
+			
+			string status_file = path_combine(file_parent(sh_file), "status");
+			if (file_exists(status_file)){
+				exit_code = int.parse(file_read(status_file));
+			}
+
+			//log_debug("exec_script_sync(): exit_code: %d".printf(exit_code));
 
 			if (cleanup_tmp){
 				file_delete(sh_file);
@@ -136,7 +148,7 @@ namespace TeeJee.ProcessHelper{
 		}
 	}
 
-	public int exec_script_async (string script){
+	public int exec_script_async (string script, bool admin_mode = false){
 
 		/* Executes commands synchronously.
 		 * Pipes and multiple commands are fully supported.
@@ -146,27 +158,27 @@ namespace TeeJee.ProcessHelper{
 
 		try {
 
-			string scriptfile = save_bash_script_temp (script);
+			string sh_file = save_bash_script_temp (script, null, false, false, admin_mode);
 
 			string[] argv = new string[1];
-			argv[0] = scriptfile;
+			argv[0] = sh_file;
 
 			string[] env = Environ.get();
 			
 			Pid child_pid;
 			Process.spawn_async_with_pipes(
-			    TEMP_DIR, //working dir
+			    file_parent(sh_file), //working dir
 			    argv, //argv
 			    env, //environment
 			    SpawnFlags.SEARCH_PATH,
 			    null,
 			    out child_pid);
 
-			return 0;
+			return child_pid;
 		}
 		catch (Error e){
 	        log_error (e.message);
-	        return 1;
+	        return -1;
 	    }
 	}
 
@@ -178,66 +190,66 @@ namespace TeeJee.ProcessHelper{
 		/* Creates a temporary bash script with given commands
 		 * Returns the script file path */
 
-		var script = new StringBuilder();
-		script.append ("#!/bin/bash\n");
-		script.append ("\n");
+		string sh = "";
+		sh += "#!/bin/bash\n";
+		sh += "\n";
 		if (force_locale){
-			script.append ("LANG=C\n");
+			sh += "LANG=C\n";
 		}
-		script.append ("\n");
-		script.append ("%s\n".printf(commands));
-		script.append ("\n\nexitCode=$?\n");
-		script.append ("echo ${exitCode} > ${exitCode}\n");
-		script.append ("echo ${exitCode} > status\n");
-
+		sh += "\n";
+		sh += "%s\n".printf(commands);
+		sh += "\n\nexitCode=$?\n";
+		sh += "echo ${exitCode} > ${exitCode}\n";
+		sh += "echo ${exitCode} > status\n";
+		sh += "exit ${exitCode}\n";
+		
 		if ((sh_path == null) || (sh_path.length == 0)){
 			sh_path = get_temp_file_path() + ".sh";
 		}
 
-		try{
-			//write script file
-			var file = File.new_for_path (sh_path);
-			if (file.query_exists ()) {
-				file.delete ();
-			}
-			var file_stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
-			var data_stream = new DataOutputStream (file_stream);
-			data_stream.put_string (script.str);
-			data_stream.close();
-
-			// set execute permission
-			chmod (sh_path, "u+x");
-		}
-		catch (Error e) {
-			if (!supress_errors){
-				log_error (e.message);
-			}
-			return null;
-		}
+		// write file
+		file_write(sh_path, sh);
+		// set execute permission
+		chmod (sh_path, "u+x");
 
 		if (admin_mode){
 			
-			var script_admin = "#!/bin/bash\n";
-			script_admin += "pkexec env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY";
-			script_admin += " '%s'".printf(escape_single_quote(sh_path));
+			sh = "";
+			sh += "#!/bin/bash\n";
+			sh += "pkexec env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY";
+			sh += " '%s'\n".printf(escape_single_quote(sh_path));
+			sh += "if [ -f status ]; then exit $(cat status); else exit 0; fi\n";
 
-			string sh_file_admin = "";
-			sh_file_admin = GLib.Path.build_filename(file_parent(sh_path),"script-admin.sh");
+			string sh_path_admin = GLib.Path.build_filename(file_parent(sh_path),"script-admin.sh");
 
-			save_bash_script_temp(script_admin, sh_file_admin, true, supress_errors);
+			// do not use script wrapper, write script file manually
+			//save_bash_script_temp(script_admin, sh_file_admin, true, supress_errors);
 
-			return sh_file_admin;
+			// write file
+			file_write(sh_path_admin, sh);
+			
+			// set execute permission
+			chmod (sh_path_admin, "u+x");
+			
+			return sh_path_admin;
 		}
 		else{
 			return sh_path;
 		}
 	}
 
-	public string get_temp_file_path(){
+	public string get_temp_file_path(bool with_temp_folder = true){
 
 		/* Generates temporary file path */
-		
-		return TEMP_DIR + "/" + timestamp_numeric() + (new Rand()).next_int().to_string();
+
+		string txt = "%s/%s".printf(TEMP_DIR, timestamp_numeric() + (new Rand()).next_int().to_string());
+
+		if (with_temp_folder){
+			dir_create(txt);
+			txt += "/%s".printf(timestamp_numeric() + (new Rand()).next_int().to_string());
+		}
+
+		return txt;
 	}
 
 	public void exec_process_new_session(string command){
@@ -255,7 +267,8 @@ namespace TeeJee.ProcessHelper{
 			int exitCode;
 			string stdout, stderr;
 			Process.spawn_command_line_sync("which " + cmd_tool, out stdout, out stderr, out exitCode);
-	        return stdout.replace("\n","").replace("\r","");
+			stdout = stdout.strip().replace("\n","");
+	        return stdout;
 		}
 		catch (Error e){
 	        log_error (e.message);
@@ -421,17 +434,114 @@ namespace TeeJee.ProcessHelper{
 		string[] arr;
 
 		foreach (string line in std_out.split ("\n")){
+			
 			arr = line.strip().split (" ");
 			if (arr.length < 1) { continue; }
 
 			pid = 0;
-			pid = int.parse (arr[0]);
+			pid = int.parse(arr[0]);
 
 			if (pid != 0){
 				procList += pid;
+
+				var children = get_process_children(pid);
+				foreach(var child_pid in children){
+					procList += child_pid;
+				}
 			}
 		}
+		
 		return procList;
+	}
+
+	public class Proc{
+		
+		public int pid = -1;
+		public int ppid = -1;
+		public string user = "";
+		public double cpu = 0.0;
+		public double mem = 0.0;
+		public int64 rss = 0;
+		public string cmdline = "";
+
+		public Proc(){ }
+
+		public static Proc[] list_processes(){
+
+			string cmd = "ps -ewo pid,ppid,user,%cpu,%mem,rss,cmd";
+
+			//log_debug(cmd);
+			
+			string std_out, std_err;
+			exec_sync(cmd, out std_out, out std_err);
+
+			Proc[] procList = {};
+
+			/*
+			USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+			teejee   22053  0.0  0.0 180184  5668 pts/19   Ss   20:47   0:00 /usr/bin/fish
+			*/
+
+			//log_debug(std_out);
+
+			foreach(string line in std_out.split("\n")){
+				
+				var match = regex_match("""([0-9]+)[ \t]+([0-9]+)[ \t]+([^ \t]+)[ \t]+([^ \t]+)[ \t]+([^ \t]+)[ \t]+([^ \t]+)[ \t]+(.+)""", line);
+				
+				if (match != null){
+
+					//log_debug("match.fetch_all().length: %d".printf(match.fetch_all().length));
+					
+					if (match.fetch_all().length != 8){ continue; }
+
+					var proc = new Proc();
+					proc.pid = int.parse(match.fetch(1));
+					proc.ppid = int.parse(match.fetch(2));
+					proc.user = match.fetch(3);
+					proc.cpu = double.parse(match.fetch(4));
+					proc.mem = double.parse(match.fetch(5));
+					proc.rss = int64.parse(match.fetch(6));
+					proc.cmdline = match.fetch(7);
+
+					if (proc.pid > 0){						
+						procList += proc;
+					}
+				}
+				else{
+					//log_debug("match is null");
+				}
+			}
+
+			//log_debug("procList.size: %d".printf(procList.length));
+			
+			return procList;
+		}
+
+		public static Proc[] enumerate_descendants(Pid parent_pid, Proc[]? process_list){
+			
+			Proc[]? procs = process_list;
+
+			if (procs == null){
+				procs = list_processes();
+			}
+
+			Proc[] descendants = {};
+
+			foreach(var proc in procs){
+				
+				if (proc.ppid == parent_pid){
+					
+					descendants += proc;
+
+					var procs2 = enumerate_descendants(proc.pid, procs);
+					foreach(var child in procs2){
+						descendants += proc;
+					}
+				}
+			}
+	
+			return descendants;
+		}
 	}
 
 	// manage process ---------------------------------
@@ -442,14 +552,20 @@ namespace TeeJee.ProcessHelper{
 		 * Sends signal SIGTERM to the process to allow it to quit gracefully.
 		 * */
 
-		int[] child_pids = get_process_children (process_pid);
-		Posix.kill (process_pid, Posix.Signal.TERM);
+		if (process_pid < 1){ return; }
 
+		int[] child_pids = get_process_children(process_pid);
+		Posix.kill(process_pid, Posix.SIGTERM);
+		log_debug("SIGTERM: pid=%d".printf(process_pid));
+		
 		if (killChildren){
 			Pid childPid;
 			foreach (long pid in child_pids){
 				childPid = (Pid) pid;
-				Posix.kill(childPid, Posix.Signal.TERM);
+				if (childPid > 1){
+					Posix.kill(childPid, Posix.SIGTERM);
+					log_debug("SIGTERM: pid=%d".printf(childPid));
+				}
 			}
 		}
 	}
@@ -460,15 +576,21 @@ namespace TeeJee.ProcessHelper{
 		 * Sends signal SIGKILL to the process to kill it forcefully.
 		 * It is recommended to use the function process_quit() instead.
 		 * */
+
+		if (process_pid < 1){ return; }
 		
 		int[] child_pids = get_process_children (process_pid);
-		Posix.kill (process_pid, Posix.Signal.KILL);
-
+		Posix.kill (process_pid, Posix.SIGKILL);
+		log_debug("SIGKILL: pid=%d".printf(process_pid));
+		
 		if (killChildren){
 			Pid childPid;
 			foreach (long pid in child_pids){
 				childPid = (Pid) pid;
-				Posix.kill (childPid, Posix.Signal.KILL);
+				if (childPid > 1){
+					Posix.kill (childPid, Posix.SIGKILL);
+					log_debug("SIGKILL: pid=%d".printf(childPid));
+				}
 			}
 		}
 	}

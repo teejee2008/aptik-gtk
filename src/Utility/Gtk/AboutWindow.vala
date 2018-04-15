@@ -298,6 +298,7 @@ public class AboutWindow : Dialog {
 		lbl_copyright = new Gtk.Label("");
 		lbl_copyright.set_use_markup(true);
 		lbl_copyright.margin_top = 5;
+		lbl_copyright.xalign = 0.5f;
 		vbox_logo.add(lbl_copyright);
 
 		//spacer_bottom
