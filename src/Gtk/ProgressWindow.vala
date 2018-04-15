@@ -33,6 +33,7 @@ using TeeJee.Misc;
 using TeeJee.GtkHelper;
 
 public class ProgressWindow : Gtk.Window {
+	
 	private Gtk.Box vbox_main;
 	private Gtk.Spinner spinner;
 	private Gtk.Label lbl_msg;
@@ -49,6 +50,8 @@ public class ProgressWindow : Gtk.Window {
 	private string status_message;
 	private bool allow_cancel = false;
 	private bool allow_close = false;
+
+	private Gtk.Window parent_win;
 	
 	// init
 	
@@ -61,6 +64,8 @@ public class ProgressWindow : Gtk.Window {
 		//set_type_hint(Gdk.WindowTypeHint.DIALOG);
 		window_position = WindowPosition.CENTER;
 
+		parent_win = parent;
+		
 		this.status_message = message;
 		this.allow_cancel = allow_cancel;
 
@@ -208,7 +213,8 @@ public class ProgressWindow : Gtk.Window {
 		gtk_do_events();
 	}
 	
-	public void finish(string message = "") {
+	public void finish(string message = "", bool close_parent = false) {
+		
 		btn_cancel.sensitive = false;
 		
 		pulse_stop();
@@ -220,11 +226,13 @@ public class ProgressWindow : Gtk.Window {
 		spinner.visible = false;
 		
 		gtk_do_events();
-		auto_close_window();
+		auto_close_window(close_parent);
 	}
 
-	private void auto_close_window() {
+	private void auto_close_window(bool close_parent) {
+		
 		tmr_close = Timeout.add(2000, ()=>{
+			
 			if (tmr_init > 0) {
 				Source.remove(tmr_init);
 				tmr_init = 0;
@@ -232,6 +240,11 @@ public class ProgressWindow : Gtk.Window {
 			
 			allow_close = true;
 			this.close();
+
+			if (close_parent){
+				parent_win.close();
+			}
+			
 			return false;
 		});
 	}

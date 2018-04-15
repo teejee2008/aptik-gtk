@@ -39,7 +39,7 @@ public class TerminalWindow : Gtk.Window {
 	private TermBox term;
 	private Gtk.Button btn_cancel;
 
-	private int def_width = 800;
+	private int def_width = 900;
 	private int def_height = 500;
 
 	private Gtk.Window parent_win = null;
@@ -92,6 +92,13 @@ public class TerminalWindow : Gtk.Window {
 
 		// terminal ------------------------------
 
+		//var scrolled = new Gtk.ScrolledWindow(null, null);
+		//scrolled.set_shadow_type(ShadowType.ETCHED_IN);
+		//scrolled.expand = true;
+		//scrolled.hscrollbar_policy = PolicyType.ALWAYS;
+		//scrolled.vscrollbar_policy = PolicyType.ALWAYS;
+		//vbox_main.add(scrolled);
+		
 		term = new TermBox(this);
 		term.expand = true;
 		vbox_main.add(term);

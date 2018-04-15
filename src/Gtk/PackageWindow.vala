@@ -44,7 +44,6 @@ public class PackageWindow : Window {
 	private Gtk.TreeView treeview;
 	private Gtk.TreeViewColumn col_status;
 
-	private Gtk.ListStore list_store;
 	private Gtk.TreeModelFilter model_filter;
 	
 	private Button btn_restore;
@@ -286,15 +285,19 @@ public class PackageWindow : Window {
 
 		cell_select.toggled.connect((path) => {
 
-			TreeIter iter;
-			model_filter.get_iter_from_string (out iter, path);
-
 			bool selected;
 			Package pkg;
-			model_filter.get(iter, 0, out selected, 1, out pkg, -1);
+
+			var store = (Gtk.ListStore) model_filter.child_model;
+
+			TreeIter filter_iter, child_iter;
+			model_filter.get_iter_from_string (out filter_iter, path);
+			model_filter.get (filter_iter, 0, out selected, 1, out pkg, -1);
 
 			pkg.is_selected = !selected;
-			model_filter.set(path, 0, pkg.is_selected, -1);
+
+			model_filter.convert_iter_to_child_iter(out child_iter, filter_iter);
+			store.set(child_iter, 0, pkg.is_selected, -1);
 		});
 
 		// status ----------------------
@@ -365,19 +368,21 @@ public class PackageWindow : Window {
 
 			TreeIter filter_iter;
 
+			var store = (Gtk.ListStore) model_filter.child_model;
+			
 			bool iterExists = model_filter.get_iter_first (out filter_iter);
 			
 			while (iterExists){
 
 				TreeIter child_iter;
 				model_filter.convert_iter_to_child_iter(out child_iter, filter_iter);
-				
+
 				bool selected;
 				Package pkg;
-				list_store.get(child_iter, 0, out selected, 1, out pkg, -1);
+				store.get(child_iter, 0, out selected, 1, out pkg, -1);
 				
 				pkg.is_selected = true;
-				list_store.set(child_iter, 0, pkg.is_selected, -1);
+				store.set(child_iter, 0, pkg.is_selected, -1);
 				
 				iterExists = model_filter.iter_next(ref filter_iter);
 			}
@@ -392,6 +397,8 @@ public class PackageWindow : Window {
 		btn_select_none.clicked.connect(() => {
 			
 			TreeIter filter_iter;
+
+			var store = (Gtk.ListStore) model_filter.child_model;
 			
 			bool iterExists = model_filter.get_iter_first (out filter_iter);
 			
@@ -402,10 +409,10 @@ public class PackageWindow : Window {
 				
 				bool selected;
 				Package pkg;
-				list_store.get(child_iter, 0, out selected, 1, out pkg, -1);
+				store.get(child_iter, 0, out selected, 1, out pkg, -1);
 				
 				pkg.is_selected = false;
-				list_store.set(child_iter, 0, pkg.is_selected, -1);
+				store.set(child_iter, 0, pkg.is_selected, -1);
 				
 				iterExists = model_filter.iter_next (ref filter_iter);
 			}
@@ -474,14 +481,22 @@ public class PackageWindow : Window {
 		log_debug("PackageWindow.cmb_status_refresh()");
 		
 		var store = new Gtk.ListStore(2, typeof(string), typeof(Gdk.Pixbuf));
-		list_store = store;
-		
+
 		TreeIter iter;
 
 		if (is_restore_view) {
 			
 			store.append(out iter);
 			store.set (iter, 0, _("Backup List"), 1, null);
+
+			store.append(out iter);
+			store.set (iter, 0, _("Installed"), 1, null);
+
+			store.append(out iter);
+			store.set (iter, 0, _("Not Installed"), 1, null);
+
+			store.append(out iter);
+			store.set (iter, 0, _("Not Available"), 1, null);
 		}
 		else{
 			store.append(out iter);
@@ -618,7 +633,28 @@ public class PackageWindow : Window {
 
 		if (is_restore_view){
 			
-			display = true;
+			display = false;
+
+			switch (cmb_status.active) {
+			case 0: //Backup list
+				display = true;
+				break;
+			case 1: //Installed
+				if (pkg.is_installed) {
+					display = true;
+				}
+				break;
+			case 2: //Not Installed
+				if (!pkg.is_installed) {
+					display = true;
+				}
+				break;
+			case 3: //Not Available
+				if (!pkg.is_available) {
+					display = true;
+				}
+				break;
+			}
 		}
 		else{
 			display = false;
@@ -728,7 +764,8 @@ public class PackageWindow : Window {
 		try {
 			is_running = true;
 			Thread.create<void> (backup_init_thread, true);
-		} catch (ThreadError e) {
+		}
+		catch (ThreadError e) {
 			is_running = false;
 			log_error (e.message);
 		}
@@ -834,21 +871,30 @@ public class PackageWindow : Window {
 		dlg.show_all();
 		gtk_do_events();
 
-		
 		string backup_path = create_backup_path(App.basepath);
 
+		// save exclude list ---------------------
+		
+		/*string txt = "";
+		foreach(var pkg in packages){
+			txt += "%s\n".printf(pkg.name);
+		}
+		string exclude_list = path_combine(backup_path, "exclude.list");
+		file_write(exclude_list, txt, false);
+		chmod(backup_path, "a+rwx");*/
+
+		// save backup ---------------------
+		
 		save_package_list_installed(backup_path); // ignore retval
 		
 		bool ok = save_package_list_selected(backup_path);
 		
 		if (ok){
-			dlg.finish(Messages.BACKUP_OK);
+			dlg.finish(Messages.BACKUP_OK, true);
 		}
 		else{
-			dlg.finish(Messages.BACKUP_ERROR);
+			dlg.finish(Messages.BACKUP_ERROR, false);
 		}
-
-		gtk_set_busy(true, this);
 	}
 
 	public bool save_package_list_installed(string backup_path) {
@@ -912,14 +958,8 @@ public class PackageWindow : Window {
 			//if (exclude_icons && pkg.name.contains("-icon-theme")){ continue; }
 			//if (exclude_themes && pkg.name.contains("-theme") && !pkg.name.contains("-icon-theme")){ continue; }
 			//if (exclude_fonts && pkg.name.has_prefix("fonts-")){ continue; }
-
-			//if (pkg.name.has_prefix("lib") || (pkg.name == "ttf-mscorefonts-installer")){
-					
-				//txt += "#"; // comment and keep
-			//}
-			//else{
+			
 			count++;
-			//}
 
 			txt += "%s".printf(pkg.name);
 			
@@ -954,13 +994,11 @@ public class PackageWindow : Window {
 
 		log_debug("PackageWindow.restore_init()");
 		
-		var status_msg = _("Preparing...");
+		var status_msg = _("Listing items from backup...");
 		var dlg = new ProgressWindow.with_parent(this, status_msg);
 		dlg.show_all();
 		gtk_do_events();
 
-		gtk_set_busy(true, this);
-		
 		try {
 			is_running = true;
 			Thread.create<void> (restore_init_thread, true);
@@ -983,7 +1021,7 @@ public class PackageWindow : Window {
 		cmb_filters_disconnect();
 		//refresh combos
 		cmb_status_refresh();
-		cmb_status.active = 10;
+		cmb_status.active = 0;
 		cmb_section_refresh();
 		//re-connect combo events
 		cmb_filters_connect();
@@ -996,8 +1034,6 @@ public class PackageWindow : Window {
 			//gtk_messagebox(title, msg, this, false);
 		//}
 
-		gtk_set_busy(false, this);
-		
 		dlg.destroy();
 		gtk_do_events();
 	}
@@ -1009,11 +1045,12 @@ public class PackageWindow : Window {
 		packages.clear();
 		
 		string std_out, std_err;
-		exec_sync("aptik --dump-packages-backup", out std_out, out std_err);
-		
+		string cmd = "aptik --dump-packages-backup --basepath '%s'".printf(escape_single_quote(App.basepath));
+		exec_sync(cmd, out std_out, out std_err);
+
 		foreach(string line in std_out.split("\n")){
 
-			var match = regex_match("""NAME='(.*)',ARCH='(.*)',DESC='(.*)',I='(0|1)',D='(0|1)',A='(0|1)',U='(0|1)',F='(0|1)',M='(0|1)'""", line);
+			var match = regex_match("""NAME='(.*)',DESC='(.*)',A='(0|1)',I='(0|1)'""", line);
 			
 			if (match != null){
 				
@@ -1021,15 +1058,20 @@ public class PackageWindow : Window {
 				packages.add(pkg);
 				
 				pkg.name = match.fetch(1);
-				pkg.arch = match.fetch(2);
-				pkg.desc = match.fetch(3);
+				pkg.desc = match.fetch(2);
+				pkg.is_available = (match.fetch(3) == "1") ? true : false;
 				pkg.is_installed = (match.fetch(4) == "1") ? true : false;
-				pkg.is_dist = (match.fetch(5) == "1") ? true : false;
-				pkg.is_auto = (match.fetch(6) == "1") ? true : false;
-				pkg.is_user = (match.fetch(7) == "1") ? true : false;
-				pkg.is_foreign = (match.fetch(8) == "1") ? true : false;
-				pkg.is_manual = (match.fetch(9) == "1") ? true : false;
 			}
+		}
+
+		log_msg("count=%d".printf(packages.size));
+
+		packages.sort((a,b) => {
+			return strcmp(a.name,b.name);
+		});
+
+		foreach(var pkg in packages){
+			pkg.is_selected = !pkg.is_installed;
 		}
 		
 		is_running = false;
@@ -1052,7 +1094,7 @@ public class PackageWindow : Window {
 		
 		if (none_selected) {
 			string title = _("Nothing To Do");
-			string msg = _("There are no packages selected for installation2");
+			string msg = _("All packages are already installed, or no packages are selected for installation");
 			gtk_messagebox(title, msg, this, false);
 			return;
 		}
@@ -1075,6 +1117,7 @@ public class Package : GLib.Object {
 	public string name = "";
 	public string arch = "";
 	public string desc = "";
+	public bool is_available = false;
 	public bool is_installed = false;
 	public bool is_selected = false;
 	public bool is_dist = false;

@@ -43,7 +43,7 @@ public class Item : GLib.Object{
 
 public class RepoWindow : Window {
 
-	private Gee.ArrayList<Item> items;
+	public Gee.ArrayList<Repo> repos = new Gee.ArrayList<Repo>();
 	
 	private Gtk.Box vbox_main;
 
@@ -72,7 +72,7 @@ public class RepoWindow : Window {
 
 	// init -------------------------
 	
-	public RepoWindow.with_parent(Window parent, bool restore) {
+	public RepoWindow(Window parent, bool restore) {
 		
 		set_transient_for(parent);
 		set_modal(true);
@@ -144,8 +144,8 @@ public class RepoWindow : Window {
 		treeview = new Gtk.TreeView();
 		treeview.get_selection().mode = SelectionMode.MULTIPLE;
 		treeview.headers_clickable = true;
-		treeview.set_rules_hint (true);
-		treeview.set_tooltip_column(3);
+		//treeview.set_rules_hint (true);
+		//treeview.set_tooltip_column(3);
 
 		// scrolled
 		scrolled = new Gtk.ScrolledWindow(null, null);
@@ -165,6 +165,7 @@ public class RepoWindow : Window {
 		col_select.pack_start (cell_select, false);
 
 		col_select.set_cell_data_func (cell_select, (cell_layout, cell, model, iter) => {
+			
 			bool selected;
 			Item item;
 			model.get (iter, 0, out selected, 1, out item, -1);
@@ -173,6 +174,7 @@ public class RepoWindow : Window {
 		});
 
 		cell_select.toggled.connect((path) => {
+			
 			var model = (Gtk.ListStore)treeview.model;
 			bool selected;
 			Item item;
@@ -198,7 +200,7 @@ public class RepoWindow : Window {
 		// col_name ----------------------
 
 		var col_name = new Gtk.TreeViewColumn();
-		col_name.title = _("Name");
+		col_name.title = _("Repo");
 		col_name.resizable = true;
 		col_name.min_width = 180;
 		treeview.append_column(col_name);
@@ -217,10 +219,10 @@ public class RepoWindow : Window {
 
 		var col_desc = new Gtk.TreeViewColumn();
 		if (is_restore_view){
-			col_desc.title = _("Desc");
+			col_desc.title = _("Packages");
 		}
 		else{
-			col_desc.title = _("Desc");
+			col_desc.title = _("Packages");
 		}
 		col_desc.resizable = true;
 		treeview.append_column(col_desc);
@@ -248,19 +250,19 @@ public class RepoWindow : Window {
 		
 		button.clicked.connect(() => {
 			
-			foreach(var item in items) {
+			foreach(var repo in repos) {
 				
 				if (is_restore_view) {
 					
-					if (!item.installed) {
-						item.selected = true;
+					if (!repo.is_installed) {
+						repo.is_selected = true;
 					}
 					else {
 						//no change
 					}
 				}
 				else {
-					item.selected = true;
+					repo.is_selected = true;
 				}
 			}
 			
@@ -274,19 +276,19 @@ public class RepoWindow : Window {
 		
 		btn_select_none.clicked.connect(() => {
 			
-			foreach(var item in items) {
+			foreach(var repo in repos) {
 				
 				if (is_restore_view) {
 					
-					if (!item.installed) {
-						item.selected = false;
+					if (!repo.is_installed) {
+						repo.is_selected = false;
 					}
 					else {
 						//no change
 					}
 				}
 				else {
-					item.selected = false;
+					repo.is_selected = false;
 				}
 			}
 			
@@ -337,20 +339,20 @@ public class RepoWindow : Window {
 
 	private void treeview_refresh() {
 		
-		var model = new Gtk.ListStore(4, typeof(bool), typeof(Item), typeof(Gdk.Pixbuf), typeof(string));
+		var model = new Gtk.ListStore(4, typeof(bool), typeof(Repo), typeof(Gdk.Pixbuf), typeof(string));
 
-		Gdk.Pixbuf pix_enabled = IconManager.lookup("item-green.png", 16);
-		Gdk.Pixbuf pix_missing = IconManager.lookup("item-gray.png", 16);
+		Gdk.Pixbuf pix_enabled = IconManager.lookup("item-green", 16);
+		Gdk.Pixbuf pix_missing = IconManager.lookup("item-gray", 16);
 
 		TreeIter iter;
 
-		foreach(var item in items) {
+		foreach(var repo in repos) {
 			
 			//add row
 			model.append(out iter);
-			model.set (iter, 0, item.selected);
-			model.set (iter, 1, item);
-			model.set (iter, 2, item.installed ? pix_enabled : pix_missing);
+			model.set (iter, 0, repo.is_selected);
+			model.set (iter, 1, repo);
+			model.set (iter, 2, repo.is_installed ? pix_enabled : pix_missing);
 			model.set (iter, 3, "");
 		}
 
@@ -360,10 +362,142 @@ public class RepoWindow : Window {
 
 	private void backup_init(){
 
+		log_debug("RepoWindow.backup_init()");
+		
+		var status_msg = _("Listing repositories...");
+		var dlg = new ProgressWindow.with_parent(this, status_msg);
+		dlg.show_all();
+		gtk_do_events();
+		
+		try {
+			is_running = true;
+			Thread.create<void> (backup_init_thread, true);
+		}
+		catch (ThreadError e) {
+			is_running = false;
+			log_error (e.message);
+		}
+
+		dlg.pulse_start();
+
+		while (is_running) {
+			dlg.sleep(200);
+		}
+
+		treeview_refresh();
+
+		dlg.destroy();
+		gtk_do_events();
+	}
+
+	private void backup_init_thread() {
+
+		log_debug("RepoWindow.backup_init_thread()");
+		
+		repos.clear();
+		
+		string std_out, std_err;
+		exec_sync("aptik --dump-repos", out std_out, out std_err);
+		
+		foreach(string line in std_out.split("\n")){
+
+			if (line.strip().length == 0) { continue; }
+			
+			var match = regex_match("""NAME='(.*)',DESC='(.*)'""", line);
+			
+			if (match != null){
+				
+				var repo = new Repo();
+				repos.add(repo);
+				
+				repo.name = match.fetch(1);
+				repo.desc = match.fetch(2);
+				repo.is_installed = true;
+			}
+			else{
+				log_debug("no-match: %s".printf(line));
+			}
+		}
+
+		repos.sort((a,b) => {
+			return strcmp(a.name,b.name);
+		});
+
+		foreach(var repo in repos){
+			repo.is_selected = repo.is_installed;
+		}
+		
+		is_running = false;
 	}
 
 	private void restore_init(){
 
+		log_debug("RepoWindow.backup_init()");
+		
+		var status_msg = _("Listing items from backup...");
+		var dlg = new ProgressWindow.with_parent(this, status_msg);
+		dlg.show_all();
+		gtk_do_events();
+		
+		try {
+			is_running = true;
+			Thread.create<void> (backup_init_thread, true);
+		}
+		catch (ThreadError e) {
+			is_running = false;
+			log_error (e.message);
+		}
+
+		dlg.pulse_start();
+
+		while (is_running) {
+			dlg.sleep(200);
+		}
+
+		treeview_refresh();
+
+		dlg.destroy();
+		gtk_do_events();
+	}
+
+	private void restore_init_thread(){
+		
+		log_debug("RepoWindow.restore_init_thread()");
+		
+		repos.clear();
+		
+		string std_out, std_err;
+		exec_sync("aptik --dump-repos-backup", out std_out, out std_err);
+		
+		foreach(string line in std_out.split("\n")){
+
+			if (line.strip().length == 0) { continue; }
+			
+			var match = regex_match("""NAME='(.*)',DESC='(.*)',I='(0|1)'""", line);
+			
+			if (match != null){
+				
+				var repo = new Repo();
+				repos.add(repo);
+				
+				repo.name = match.fetch(1);
+				repo.desc = match.fetch(2);
+				repo.is_installed = (match.fetch(3) == "1") ? true : false;
+			}
+			else{
+				log_debug("no-match: %s".printf(line));
+			}
+		}
+
+		repos.sort((a,b) => {
+			return strcmp(a.name,b.name);
+		});
+
+		foreach(var repo in repos){
+			repo.is_selected = !repo.is_installed;
+		}
+		
+		is_running = false;
 	}
 
 	private void btn_backup_clicked(){
@@ -375,4 +509,10 @@ public class RepoWindow : Window {
 	}
 }
 
-
+public class Repo : GLib.Object {
+	
+	public string name = "";
+	public string desc = "";
+	public bool is_installed = false;
+	public bool is_selected = false;
+}

@@ -54,7 +54,9 @@ public class DonationWindow : Dialog {
 
 		//get_action_area().visible = false;
 
-		string msg = _("Did you find this application useful?\n\nYou can buy me a coffee or make a donation via PayPal to show your support.\n\nThis application includes a few extra features for people who have contributed to the project through donations, translations, etc. You can make a donation for $10 or more via PayPal to receive the plugins by email. Your contributions will help keep the project alive and support future development.\n\nThanks,\nTony George");
+		string msg = _("Did you find this application useful?\n\nYou can buy me a coffee or make a donation via PayPal to show your support.\n\nThis application is free and will continue to remain that way. Your contributions will help keep the project alive and support future development.");
+
+		/*msg += "\n\nIf you make a donation to this project you will receive a plugin as a special gift. This plugin generates a stand-alone installer from the backup files. The installer can be executed on a fresh Linux installation to transform it to the original system. You can distribute this installer as a \"transformation pack\" to create your own customized distribution.\n\nThanks,\nTony George";*/
 		
 		var label = new Gtk.Label(msg);
 		label.wrap = true;
@@ -85,15 +87,15 @@ public class DonationWindow : Dialog {
 		}
 
 		// donation_features
-		var button = new Gtk.LinkButton.with_label("", _("Donation Features"));
-		button.set_tooltip_text("https://github.com/teejee2008/polo/wiki/Donation-Features");
-		vbox_main.add(button);
-		button.clicked.connect(() => {
-			xdg_open("https://github.com/teejee2008/polo/wiki/Donation-Features", username);
-		});
+		//var button = new Gtk.LinkButton.with_label("", _("Donation Features"));
+		//button.set_tooltip_text("https://github.com/teejee2008/polo/wiki/Donation-Features");
+		//vbox_main.add(button);
+		//button.clicked.connect(() => {
+		//	xdg_open("https://github.com/teejee2008/polo/wiki/Donation-Features", username);
+		//});
 		
 		// donate paypal
-		button = new Gtk.LinkButton.with_label("", _("Donate with PayPal"));
+		var button = new Gtk.LinkButton.with_label("", _("Donate with PayPal"));
 		button.set_tooltip_text("Donate to: teejeetech@gmail.com");
 		vbox_main.add(button);
 		button.clicked.connect(() => {
@@ -110,26 +112,26 @@ public class DonationWindow : Dialog {
 
 		// issue tracker
 		button = new Gtk.LinkButton.with_label("", _("Issue Tracker ~ Report Issues, Request Features, Ask Questions"));
-		button.set_tooltip_text("https://github.com/teejee2008/polo/issues");
+		button.set_tooltip_text("https://github.com/teejee2008/aptik-next/issues");
 		vbox_main.add(button);
 		button.clicked.connect(() => {
-			xdg_open("https://github.com/teejee2008/polo/issues", username);
+			xdg_open("https://github.com/teejee2008/aptik-next/issues", username);
 		});
 
-		// wiki
-		button = new Gtk.LinkButton.with_label("", _("Wiki ~ Documentation & Help"));
-		button.set_tooltip_text("https://github.com/teejee2008/polo/wiki");
+		// user manual
+		button = new Gtk.LinkButton.with_label("", _("User Manual"));
+		button.set_tooltip_text("https://github.com/teejee2008/aptik-next/blob/master/MANUAL.md");
 		vbox_main.add(button);
 		button.clicked.connect(() => {
-			xdg_open("https://github.com/teejee2008/polo/wiki", username);
+			xdg_open("https://github.com/teejee2008/aptik-next/blob/master/MANUAL.md", username);
 		});
 
-		// website
-		button = new Gtk.LinkButton.with_label("", _("Website ~ teejeetech.in"));
-		button.set_tooltip_text("http://www.teejeetech.in");
+		// medium
+		button = new Gtk.LinkButton.with_label("", _("Follow me on Medium"));
+		button.set_tooltip_text("https://medium.com/@teejeetech");
 		vbox_main.add(button);
 		button.clicked.connect(() => {
-			xdg_open("http://www.teejeetech.in", username);
+			xdg_open("https://medium.com/@teejeetech", username);
 		});
 
 		// close window

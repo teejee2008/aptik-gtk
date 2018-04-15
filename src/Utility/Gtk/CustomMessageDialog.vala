@@ -131,7 +131,7 @@ public class CustomMessageDialog : Gtk.Dialog {
 		// image ----------------
 		
 		var img = new Image.from_icon_name(icon_name, Gtk.IconSize.DIALOG);
-		img.margin_right = 12;
+		//img.margin_right = 12;
 		hbox_contents.add(img);
 		
 		// label -------------------

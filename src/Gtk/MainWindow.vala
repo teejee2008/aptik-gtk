@@ -70,16 +70,101 @@ public class MainWindow : Window {
 
 		init_section_backup();
 
+		init_section_header_links();
+		
 		txt_basepath.text = App.basepath;
 
 		termwin = new TerminalWindow.with_parent(this, false, true);
 		termwin.start_shell();	
-
+	
 		//init_section_toolbar_bottom();
 
 		//init_section_status();
 	}
 
+	private void init_section_header_links() {
+		
+		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
+		//hbox.margin_bottom = 6;
+		//hbox.margin_right = 6;
+		vbox_main.pack_start (hbox, false, true, 0);
+
+		//var expander = new Gtk.Label("");
+		//expander.hexpand = true;
+		//hbox.add(expander);
+
+		// donate link
+		var button = new Gtk.LinkButton.with_label("", _("Buy me a coffee"));
+		hbox.add(button);
+		
+		button.clicked.connect(() => {
+			var win = new DonationWindow();
+			win.show();
+		});
+
+		// user manual
+		button = new Gtk.LinkButton.with_label("", _("Read User Manual"));
+		hbox.add(button);
+		
+		button.clicked.connect(() => {
+			xdg_open("https://github.com/teejee2008/aptik-next/blob/master/MANUAL.md");
+		});
+
+		// about
+		button = new Gtk.LinkButton.with_label("", _("About"));
+		hbox.add(button);
+		
+		button.clicked.connect(() => {
+			btn_show_about_window();
+		});
+	}
+
+	private void btn_show_about_window(){
+		
+		var dialog = new AboutWindow();
+		dialog.set_transient_for (this);
+
+		dialog.authors = {
+			"Tony George:teejeetech@gmail.com"
+		};
+
+		dialog.contributors = {
+			//"Shem Pasamba (Proxy support for package downloads):shemgp@gmail.com"
+		};
+
+		dialog.third_party = {
+			"Numix project (Main app icon):https://numixproject.org/",
+			"Elementary project (various icons):https://github.com/elementary/icons",
+			"Tango project (various icons):http://tango.freedesktop.org/Tango_Desktop_Project"
+		};
+		
+		dialog.translators = {
+			//"B. W. Knight (Korean):https://launchpad.net/~kbd0651",
+			//"giulux (Italian):https://launchpad.net/~giulbuntu",
+			//"Jorge Jamhour (Brazilian Portuguese):https://launchpad.net/~jorge-jamhour",
+			//"Radek Otáhal (Czech):radek.otahal@email.cz",
+			//"Rodion R. (Russian):https://launchpad.net/~r0di0n",
+			//"Åke Engelbrektson:https://launchpad.net/~eson"
+		};
+
+		dialog.documenters = null;
+		dialog.artists = null;
+		dialog.donations = null;
+
+		dialog.program_name = AppName;
+		dialog.comments = _("Settings & Data Migration Utility for Linux");
+		dialog.copyright = "Copyright © 2012-2018 %s (%s)".printf(AppAuthor, AppAuthorEmail);
+		dialog.version = AppVersion;
+		dialog.logo = get_app_icon(128); 
+
+		dialog.license = "This program is free for personal and commercial use and comes with absolutely no warranty. You use this program entirely at your own risk. The author will not be liable for any damages arising from the use of this program.";
+		dialog.website = "http://teejeetech.in";
+		dialog.website_label = "http://teejeetech.blogspot.in";
+
+		dialog.initialize();
+		dialog.show_all();
+	}
+	
 	private void init_section_location() {
 		
 		// header
@@ -94,6 +179,8 @@ public class MainWindow : Window {
 		hbox.margin_bottom = 6;
 		hbox.margin_right = 6;
 		vbox_main.pack_start (hbox, false, true, 0);
+
+		hbox.set_size_request(500,-1);
 
 		// entry
 		var entry = new Gtk.Entry();
@@ -128,7 +215,7 @@ public class MainWindow : Window {
 
 		button.clicked.connect(() => {
 			if (check_backup_folder()) {
-				//exo_open_folder(App.backup_dir, false);
+				exo_open_folder(App.basepath, false);
 			}
 		});
 
@@ -246,7 +333,7 @@ public class MainWindow : Window {
 
 	private Gtk.Button add_button_view(Gtk.ButtonBox bbox) {
 
-		return add_button(bbox, _("Manage"));
+		return add_button(bbox, _("List"));
 	}
 
 	private Gtk.Button add_button_backup(Gtk.ButtonBox bbox) {
@@ -276,20 +363,23 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
 			execute("pkexec aptik --list-repos --basepath '%s'".printf(App.basepath));
-		});
+		});*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
-			execute("pkexec aptik --backup-repos --basepath '%s'".printf(App.basepath));
+			var win = new RepoWindow(this, false);
+			win.show_all();
+			
+			//execute("pkexec aptik --backup-repos --basepath '%s'".printf(App.basepath));
 		});
 
 		button = add_button_restore(bbox);
@@ -297,7 +387,10 @@ public class MainWindow : Window {
 			
 			if (!check_backup_folder()) { return; }
 
-			execute("pkexec aptik --restore-repos --basepath '%s'".printf(App.basepath));
+			var win = new RepoWindow(this, true);
+			win.show_all();
+			
+			//execute("pkexec aptik --restore-repos --basepath '%s'".printf(App.basepath));
 		});
 	}
 
@@ -309,15 +402,15 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
 			//execute("pkexec aptik --list-cache --basepath '%s'".printf(App.basepath));
-		});
+		});*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -342,16 +435,16 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 		
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 
 			var win = new PackageWindow(this, false);
 			win.show_all();
 			
 			//execute("pkexec aptik --list-installed-user --basepath '%s'".printf(App.basepath));
-		});
+		});*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -382,15 +475,15 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 		
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
 			execute("pkexec aptik --list-users --basepath '%s'".printf(App.basepath));
-		});
+		});*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -415,15 +508,15 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 		
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
 			execute("pkexec aptik --list-groups --basepath '%s'".printf(App.basepath));
-		});
+		});*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -448,15 +541,15 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 		
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
 			execute("pkexec aptik --list-home --basepath '%s'".printf(App.basepath));
-		});
+		});*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -481,15 +574,15 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 		
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
 			execute("pkexec aptik --list-mounts --basepath '%s'".printf(App.basepath));
-		});
+		});*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -514,15 +607,15 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 		
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
 			execute("pkexec aptik --list-icons --basepath '%s'".printf(App.basepath));
-		});
+		});*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -547,15 +640,15 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 		
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
 
 			execute("pkexec aptik --list-themes --basepath '%s'".printf(App.basepath));
-		});
+		});*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -580,7 +673,7 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 		
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -588,9 +681,9 @@ public class MainWindow : Window {
 			execute("pkexec aptik --list-fonts --basepath '%s'".printf(App.basepath));
 		});
 
-		button.sensitive = false;
+		button.sensitive = false;*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -615,7 +708,7 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 		
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -623,9 +716,9 @@ public class MainWindow : Window {
 			//execute("pkexec aptik --list-dconf --basepath '%s'".printf(App.basepath));
 		});
 
-		button.sensitive = false;
+		button.sensitive = false;*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -650,7 +743,7 @@ public class MainWindow : Window {
 
 		var bbox = add_section_actions(row);
 		
-		var button = add_button_view(bbox);
+		/*var button = add_button_view(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -658,9 +751,9 @@ public class MainWindow : Window {
 			//execute("pkexec aptik --list-cron --basepath '%s'".printf(App.basepath));
 		});
 
-		button.sensitive = false;
+		button.sensitive = false;*/
 
-		button = add_button_backup(bbox);
+		var button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -703,6 +796,7 @@ public class MainWindow : Window {
 	}
 
 	private void btn_about_clicked () {
+		
 		var dialog = new AboutWindow();
 		dialog.set_transient_for (this);
 
