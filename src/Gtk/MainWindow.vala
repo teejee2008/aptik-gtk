@@ -43,6 +43,26 @@ public class MainWindow : Window {
 
 	private TerminalWindow termwin;
 
+	public bool include_repos = true;
+	public bool include_cache = true;
+	public bool include_packages = true;
+	public bool include_users = true;
+	public bool include_groups = true;
+	public bool include_home = true;
+	public bool include_mounts = true;
+	public bool include_icons = true;
+	public bool include_themes = true;
+	public bool include_fonts = true;
+	public bool include_dconf = true;
+	public bool include_cron = true;
+
+	public bool exclude_pkg_icons = false;
+	public bool exclude_pkg_themes = false;
+	public bool exclude_pkg_fonts = false;
+	public bool exclude_pkg_foreign = true;
+
+	public bool exclude_home_encrypted = true;
+	
 	int icon_size_list = 22;
 	int button_width = 85;
 	int button_height = 15;
@@ -103,7 +123,7 @@ public class MainWindow : Window {
 		});
 
 		// user manual
-		button = new Gtk.LinkButton.with_label("", _("Read User Manual"));
+		button = new Gtk.LinkButton.with_label("", _("User Manual"));
 		hbox.add(button);
 		
 		button.clicked.connect(() => {
@@ -313,13 +333,23 @@ public class MainWindow : Window {
 		grid.attach(label, 1, row, 1, 1);
 	}
 
-	private Gtk.ButtonBox add_section_actions(int row){
+	private Gtk.ButtonBox add_section_extra(int row) {
 
-		var bbox = new Gtk.ButtonBox(Orientation.HORIZONTAL);
+		var bbox = new Gtk.ButtonBox(Gtk.Orientation.HORIZONTAL);
 		bbox.set_layout(Gtk.ButtonBoxStyle.EXPAND);
 		bbox.set_homogeneous(false);
-		bbox.margin_left = 24;
+		//bbox.margin_left = 24;
 		grid.attach(bbox, 2, row, 1, 1);
+		return bbox;
+	}
+
+	private Gtk.ButtonBox add_section_actions(int row){
+
+		var bbox = new Gtk.ButtonBox(Gtk.Orientation.HORIZONTAL);
+		bbox.set_layout(Gtk.ButtonBoxStyle.EXPAND);
+		bbox.set_homogeneous(false);
+		//bbox.margin_left = 24;
+		grid.attach(bbox, 3, row, 1, 1);
 		return bbox;
 	}
 
@@ -776,9 +806,25 @@ public class MainWindow : Window {
 
 		add_section_label(row, Messages.TASK_ALL);
 
-		var bbox = add_section_actions(row);
+		//add_section_extra(row, _("Settings"));
 		
-		var button = add_button_backup(bbox);
+		var bbox = add_section_extra(row);
+		
+		var button = add_button(bbox, _("Settings"));
+		
+		button.clicked.connect(()=>{
+			
+			if (!check_backup_folder()) { return; }
+
+			var win = new SettingsWindow(this);
+			win.show_all();
+		});
+
+		// ---------------------------------------
+		
+		bbox = add_section_actions(row);
+		
+		button = add_button_backup(bbox);
 		button.clicked.connect(()=>{
 			
 			if (!check_backup_folder()) { return; }
@@ -795,52 +841,6 @@ public class MainWindow : Window {
 		});
 	}
 
-	private void btn_about_clicked () {
-		
-		var dialog = new AboutWindow();
-		dialog.set_transient_for (this);
-
-		dialog.authors = {
-			"Tony George:teejeetech@gmail.com"
-		};
-
-		dialog.contributors = {
-			"Shem Pasamba (Proxy support for package downloads):shemgp@gmail.com"
-		};
-
-		dialog.third_party = {
-			"Numix project (Main app icon):https://numixproject.org/",
-			"Elementary project (various icons):https://github.com/elementary/icons",
-			"Tango project (various icons):http://tango.freedesktop.org/Tango_Desktop_Project"
-		};
-		
-		dialog.translators = {
-			"B. W. Knight (Korean):https://launchpad.net/~kbd0651",
-			"giulux (Italian):https://launchpad.net/~giulbuntu",
-			"Jorge Jamhour (Brazilian Portuguese):https://launchpad.net/~jorge-jamhour",
-			"Radek Otáhal (Czech):radek.otahal@email.cz",
-			"Rodion R. (Russian):https://launchpad.net/~r0di0n",
-			"Åke Engelbrektson:https://launchpad.net/~eson"
-		};
-
-		dialog.documenters = null;
-		dialog.artists = null;
-		dialog.donations = null;
-
-		dialog.program_name = AppName;
-		dialog.comments = _("Migration utility for Ubuntu-based distributions");
-		dialog.copyright = "Copyright © 2012-2017 %s (%s)".printf(AppAuthor, AppAuthorEmail);
-		dialog.version = AppVersion;
-		dialog.logo = get_app_icon(128); 
-
-		dialog.license = "This program is free for personal and commercial use and comes with absolutely no warranty. You use this program entirely at your own risk. The author will not be liable for any damages arising from the use of this program.";
-		dialog.website = "http://teejeetech.in";
-		dialog.website_label = "http://teejeetech.blogspot.in";
-
-		dialog.initialize();
-		dialog.show_all();
-	}
-
 	private bool check_backup_folder() {
 		if (dir_exists (txt_basepath.text)) {
 			return true;
@@ -852,61 +852,6 @@ public class MainWindow : Window {
 			return false;
 		}
 	}
-
-	private bool check_password() {
-
-		//App.arg_password = txt_password.text;
-		
-		//if (App.arg_password.length > 0){
-			return true;
-		//}
-		//else {
-			/*string title = _("Password Field is Empty");
-			string msg = _("Enter the passphrase for encryption");
-			gtk_messagebox(title, msg, this, false);
-			return false;*/
-		//}
-	}
-
-	private bool check_backup_file(string file_name) {
-		/*if (check_backup_folder()) {
-			string backup_file = App.backup_dir + file_name;
-			var f = File.new_for_path(backup_file);
-			if (!f.query_exists()) {
-				string title = _("File Not Found");
-				string msg = _("File not found in backup directory") + " - %s".printf(file_name);
-				gtk_messagebox(title, msg, this, true);
-				return false;
-			}
-			else {
-				return true;
-			}
-		}
-		else {
-			return false;
-		}*/
-		return false;
-	}
-
-	private bool check_backup_subfolder(string folder_name) {
-		/*if (check_backup_folder()) {
-			string folder = App.backup_dir + folder_name;
-			var f = File.new_for_path(folder);
-			if (!f.query_exists()) {
-				string title = _("Folder Not Found");
-				string msg = _("Folder not found in backup directory") + " - %s".printf(folder_name);
-				gtk_messagebox(title, msg, this, true);
-				return false;
-			}
-			else {
-				return true;
-			}
-		}
-		else {*/
-			return false;
-		//}
-	}
-
 }
 
 
