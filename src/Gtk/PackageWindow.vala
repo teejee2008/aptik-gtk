@@ -59,6 +59,8 @@ public class PackageWindow : Window {
 	private bool is_running = false;
 	private bool is_restore_view = false;
 
+	private MainWindow main_window;
+
 	public Gee.ArrayList<Package> packages = new Gee.ArrayList<Package>();
 
 	private bool is_backup_view{
@@ -73,11 +75,13 @@ public class PackageWindow : Window {
 
 	// init
 	
-	public PackageWindow(Gtk.Window parent, bool restore) {
+	public PackageWindow(MainWindow parent, bool restore) {
 		
 		set_transient_for(parent);
 		set_modal(true);
 		is_restore_view = restore;
+
+		main_window = parent;
 
 		Gtk.drag_dest_set (this,Gtk.DestDefaults.ALL, targets, Gdk.DragAction.COPY);
 		drag_data_received.connect(on_drag_data_received);
@@ -841,6 +845,12 @@ public class PackageWindow : Window {
 		});
 
 		foreach(var pkg in packages){
+
+			if (main_window.exclude_pkg_foreign && pkg.is_foreign){ continue; }
+			if (main_window.exclude_pkg_icons && pkg.name.contains("-icon-theme")){ continue; }
+			if (main_window.exclude_pkg_themes && pkg.name.contains("-theme") && !pkg.name.contains("-icon-theme")){ continue; }
+			if (main_window.exclude_pkg_fonts && pkg.name.has_prefix("fonts-")){ continue; }
+
 			pkg.is_selected = pkg.is_user;
 		}
 		
@@ -956,7 +966,7 @@ public class PackageWindow : Window {
 			// user selected
 			
 			//if (!include_foreign && pkg.is_foreign){ continue; }
-			//if (exclude_icons && pkg.name.contains("-icon-theme")){ continue; }
+			//if (main_window.exclude_pkg_icons && pkg.name.contains("-icon-theme")){ continue; }
 			//if (exclude_themes && pkg.name.contains("-theme") && !pkg.name.contains("-icon-theme")){ continue; }
 			//if (exclude_fonts && pkg.name.has_prefix("fonts-")){ continue; }
 			

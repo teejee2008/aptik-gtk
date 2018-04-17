@@ -238,6 +238,24 @@ public class SettingsWindow : Window {
 		});
 
 		// ----------------------------
+
+		var chk_files = create_checkbutton(vbox, Messages.TASK_FILES);
+
+		chk_files.active = main_window.include_files;
+		chk_files.toggled.connect(()=>{
+			main_window.include_files = chk_files.active;
+		});
+
+		// ----------------------------
+
+		var chk_scripts = create_checkbutton(vbox, Messages.TASK_SCRIPTS);
+
+		chk_scripts.active = main_window.include_scripts;
+		chk_scripts.toggled.connect(()=>{
+			main_window.include_scripts = chk_scripts.active;
+		});
+
+		// ----------------------------
 	}
 
 	private void add_options_packages(Gtk.Box vbox){

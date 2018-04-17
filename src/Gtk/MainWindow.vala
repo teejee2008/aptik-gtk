@@ -55,6 +55,8 @@ public class MainWindow : Window {
 	public bool include_fonts = true;
 	public bool include_dconf = true;
 	public bool include_cron = true;
+	public bool include_files = true;
+	public bool include_scripts = true;
 
 	public bool exclude_pkg_icons = false;
 	public bool exclude_pkg_themes = false;
@@ -62,6 +64,7 @@ public class MainWindow : Window {
 	public bool exclude_pkg_foreign = true;
 
 	public bool exclude_home_encrypted = true;
+	public bool exclude_home_hidden = false;
 	
 	int icon_size_list = 22;
 	int button_width = 85;
@@ -584,7 +587,12 @@ public class MainWindow : Window {
 			
 			if (!check_backup_folder()) { return; }
 
-			execute("pkexec aptik --backup-home --basepath '%s'".printf(App.basepath));
+			string cmd = "";
+			cmd += "pkexec aptik --backup-home";
+			cmd += exclude_home_hidden ? " --exclude-hidden" : "" ;
+			cmd += " --basepath '%s'".printf(App.basepath);
+			
+			execute(cmd);
 		});
 
 		button = add_button_restore(bbox);
@@ -592,7 +600,12 @@ public class MainWindow : Window {
 			
 			if (!check_backup_folder()) { return; }
 
-			execute("pkexec aptik --restore-home --basepath '%s'".printf(App.basepath));
+			string cmd = "";
+			cmd += "pkexec aptik --restore-home";
+			cmd += exclude_home_hidden ? " --exclude-hidden" : "" ;
+			cmd += " --basepath '%s'".printf(App.basepath);
+			
+			execute(cmd);
 		});
 	}
 
@@ -829,7 +842,25 @@ public class MainWindow : Window {
 			
 			if (!check_backup_folder()) { return; }
 
-			execute("pkexec aptik --backup-all --basepath '%s'".printf(App.basepath));
+			string cmd = "";
+			cmd += "pkexec aptik --backup-all";
+			cmd += (!include_repos) ? " --skip-repos" : "" ;
+			cmd += (!include_cache) ? " --skip-cache" : "" ;
+			cmd += (!include_packages) ? " --skip-packages" : "" ;
+			cmd += (!include_users) ? " --skip-users" : "" ;
+			cmd += (!include_groups) ? " --skip-groups" : "" ;
+			cmd += (!include_home) ? " --skip-home" : "" ;
+			cmd += (!include_mounts) ? " --skip-mounts" : "" ;
+			cmd += (!include_themes) ? " --skip-themes" : "" ;
+			cmd += (!include_icons) ? " --skip-icons" : "" ;
+			cmd += (!include_fonts) ? " --skip-fonts" : "" ;
+			cmd += (!include_dconf) ? " --skip-dconf" : "" ;
+			cmd += (!include_cron) ? " --skip-cron" : "" ;
+			cmd += (!include_files) ? " --skip-files" : "" ;
+			cmd += (!include_scripts) ? " --skip-scripts" : "" ;
+			cmd += " --basepath '%s'".printf(App.basepath);
+			
+			execute(cmd);
 		});
 
 		button = add_button_restore(bbox);
@@ -837,7 +868,25 @@ public class MainWindow : Window {
 			
 			if (!check_backup_folder()) { return; }
 
-			execute("pkexec aptik --restore-all --basepath '%s'".printf(App.basepath));
+			string cmd = "";
+			cmd += "pkexec aptik --restore-all";
+			cmd += (!include_repos) ? " --skip-repos" : "" ;
+			cmd += (!include_cache) ? " --skip-cache" : "" ;
+			cmd += (!include_packages) ? " --skip-packages" : "" ;
+			cmd += (!include_users) ? " --skip-users" : "" ;
+			cmd += (!include_groups) ? " --skip-groups" : "" ;
+			cmd += (!include_home) ? " --skip-home" : "" ;
+			cmd += (!include_mounts) ? " --skip-mounts" : "" ;
+			cmd += (!include_themes) ? " --skip-themes" : "" ;
+			cmd += (!include_icons) ? " --skip-icons" : "" ;
+			cmd += (!include_fonts) ? " --skip-fonts" : "" ;
+			cmd += (!include_dconf) ? " --skip-dconf" : "" ;
+			cmd += (!include_cron) ? " --skip-cron" : "" ;
+			cmd += (!include_files) ? " --skip-files" : "" ;
+			cmd += (!include_scripts) ? " --skip-scripts" : "" ;
+			cmd += " --basepath '%s'".printf(App.basepath);
+			
+			execute(cmd);
 		});
 	}
 
