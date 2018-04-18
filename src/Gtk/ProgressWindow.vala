@@ -62,7 +62,7 @@ public class ProgressWindow : Gtk.Window {
 		set_skip_taskbar_hint(true);
 		set_skip_pager_hint(true);
 		//set_type_hint(Gdk.WindowTypeHint.DIALOG);
-		window_position = WindowPosition.CENTER;
+		window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
 
 		parent_win = parent;
 		

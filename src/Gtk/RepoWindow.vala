@@ -72,6 +72,8 @@ public class RepoWindow : Window {
 		set_modal(true);
 		is_restore_view = restore;
 
+		window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
+
 		destroy.connect(()=>{
 			parent.present();
 		});

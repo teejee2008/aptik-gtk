@@ -48,7 +48,10 @@ public class SettingsWindow : Window {
 	public SettingsWindow(MainWindow parent) {
 		
 		set_transient_for(parent);
+		
 		set_modal(true);
+
+		window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
 
 		this.destroy.connect(()=>{
 			parent.present();
@@ -364,9 +367,9 @@ public class SettingsWindow : Window {
 
 		chk.set_tooltip_text(_("Exclude hidden files and directories in home, which contain application configuration files."));
 
-		chk.active = main_window.exclude_pkg_foreign;
+		chk.active = main_window.exclude_home_hidden;
 		chk.toggled.connect(()=>{
-			main_window.exclude_pkg_foreign = chk.active;
+			main_window.exclude_home_hidden = chk.active;
 		});
 	}
 		

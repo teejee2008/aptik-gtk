@@ -53,7 +53,7 @@ public class PackageWindow : Window {
 	private Button btn_select_none;
 
 	private int def_width = 700;
-	private int def_height = 450;
+	private int def_height = 500;
 	private uint tmr_init = 0;
 	private uint tmr_refilter = 0;
 	private bool is_running = false;
@@ -78,9 +78,13 @@ public class PackageWindow : Window {
 	public PackageWindow(MainWindow parent, bool restore) {
 		
 		set_transient_for(parent);
+		
 		set_modal(true);
+		
 		is_restore_view = restore;
 
+		window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
+		
 		main_window = parent;
 
 		Gtk.drag_dest_set (this,Gtk.DestDefaults.ALL, targets, Gdk.DragAction.COPY);

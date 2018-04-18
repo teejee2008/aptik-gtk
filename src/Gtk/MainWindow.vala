@@ -112,9 +112,9 @@ public class MainWindow : Window {
 		//hbox.margin_right = 6;
 		vbox_main.pack_start (hbox, false, true, 0);
 
-		//var expander = new Gtk.Label("");
-		//expander.hexpand = true;
-		//hbox.add(expander);
+		var expander = new Gtk.Label("");
+		expander.hexpand = true;
+		hbox.add(expander);
 
 		// donate link
 		var button = new Gtk.LinkButton.with_label("", _("Buy me a coffee"));
@@ -140,6 +140,17 @@ public class MainWindow : Window {
 		button.clicked.connect(() => {
 			btn_show_about_window();
 		});
+
+		if (cmd_exists("aptik-gen")){
+
+			// generate installer
+			button = new Gtk.LinkButton.with_label("", _("Create Installer"));
+			hbox.add(button);
+			
+			button.clicked.connect(() => {
+				
+			});
+		}
 	}
 
 	private void btn_show_about_window(){
@@ -176,13 +187,13 @@ public class MainWindow : Window {
 
 		dialog.program_name = AppName;
 		dialog.comments = _("Settings & Data Migration Utility for Linux");
-		dialog.copyright = "Copyright © 2012-2018\n%s (%s)".printf(AppAuthor, AppAuthorEmail);
+		dialog.copyright = "Copyright © 2012-2018 %s (%s)".printf(AppAuthor, AppAuthorEmail);
 		dialog.version = AppVersion;
 		dialog.logo = get_app_icon(128); 
 
 		dialog.license = "This program is free for personal and commercial use and comes with absolutely no warranty. You use this program entirely at your own risk. The author will not be liable for any damages arising from the use of this program.";
-		dialog.website = "http://teejeetech.in";
-		dialog.website_label = "http://teejeetech.blogspot.in";
+		dialog.website = "https://github.com/teejee2008/aptik";
+		dialog.website_label = "https://github.com/teejee2008/aptik";
 
 		dialog.initialize();
 		dialog.show_all();

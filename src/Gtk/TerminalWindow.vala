@@ -51,6 +51,7 @@ public class TerminalWindow : Gtk.Window {
 		if (parent != null){
 			set_transient_for(parent);
 			parent_win = parent;
+			window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
 		}
 		
 		set_modal(false);
