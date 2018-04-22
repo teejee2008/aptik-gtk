@@ -850,10 +850,10 @@ public class PackageWindow : Window {
 
 		foreach(var pkg in packages){
 
-			if (main_window.exclude_pkg_foreign && pkg.is_foreign){ continue; }
-			if (main_window.exclude_pkg_icons && pkg.name.contains("-icon-theme")){ continue; }
-			if (main_window.exclude_pkg_themes && pkg.name.contains("-theme") && !pkg.name.contains("-icon-theme")){ continue; }
-			if (main_window.exclude_pkg_fonts && pkg.name.has_prefix("fonts-")){ continue; }
+			if (App.include_pkg_foreign && pkg.is_foreign){ continue; }
+			if (App.exclude_pkg_icons && pkg.name.contains("-icon-theme")){ continue; }
+			if (App.exclude_pkg_themes && pkg.name.contains("-theme") && !pkg.name.contains("-icon-theme")){ continue; }
+			if (App.exclude_pkg_fonts && pkg.name.has_prefix("fonts-")){ continue; }
 
 			pkg.is_selected = pkg.is_user;
 		}

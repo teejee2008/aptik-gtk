@@ -37,7 +37,7 @@ public class SettingsWindow : Window {
 
 	private Gtk.Box vbox_main;
 
-	private int def_width = 700;
+	private int def_width = 500;
 	private int def_height = 450;
 	private uint tmr_init = 0;
 	
@@ -46,18 +46,20 @@ public class SettingsWindow : Window {
 	// init -------------------------
 	
 	public SettingsWindow(MainWindow parent) {
+
+		main_window = parent;
 		
 		set_transient_for(parent);
 		
 		set_modal(true);
+
+		this.title = _("Settings");
 
 		window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
 
 		this.destroy.connect(()=>{
 			parent.present();
 		});
-
-		main_window = parent;
 		
 		init_window();
 	}
@@ -71,7 +73,8 @@ public class SettingsWindow : Window {
 		deletable = true;
 		
 		vbox_main = new Gtk.Box (Orientation.VERTICAL, 6);
-		vbox_main.margin = 6;
+		vbox_main.margin = 12;
+		//vbox_main.margin_right = 24;
 		this.add(vbox_main);
 
 		var hbox = new Gtk.Box(Orientation.HORIZONTAL, 6);
@@ -111,7 +114,7 @@ public class SettingsWindow : Window {
 		vbox.add(label);
 
 		var vbox2 = new Gtk.Box(Orientation.VERTICAL, 3);
-		vbox2.margin_left = 6;
+		//vbox2.margin_left = 6;
 		vbox.add(vbox2);
 
 		add_options_for_items(vbox2);
@@ -119,7 +122,8 @@ public class SettingsWindow : Window {
 		// ---------------------
 		
 		var separator = new Gtk.Separator(Gtk.Orientation.VERTICAL);
-		separator.margin_left = 24;
+		separator.margin = 12;
+		//separator.margin_right = 24;
 		box.add(separator);
 
 		// ---------------------
@@ -136,126 +140,126 @@ public class SettingsWindow : Window {
 
 		var chk_repo = create_checkbutton(vbox, Messages.TASK_REPOS);
 
-		chk_repo.active = main_window.include_repos;
+		chk_repo.active = App.include_repos;
 		chk_repo.toggled.connect(()=>{
-			main_window.include_repos = chk_repo.active;
+			App.include_repos = chk_repo.active;
 		});
 
 		// ----------------------------
 		
 		var chk_cache = create_checkbutton(vbox, Messages.TASK_CACHE);
 
-		chk_cache.active = main_window.include_cache;
+		chk_cache.active = App.include_cache;
 		chk_cache.toggled.connect(()=>{
-			main_window.include_cache = chk_cache.active;
+			App.include_cache = chk_cache.active;
 		});
 
 		// ----------------------------
 		
 		var chk_packages = create_checkbutton(vbox, Messages.TASK_PACKAGES);
 
-		chk_packages.active = main_window.include_packages;
+		chk_packages.active = App.include_packages;
 		chk_packages.toggled.connect(()=>{
-			main_window.include_packages = chk_packages.active;
+			App.include_packages = chk_packages.active;
 		});
 
 		// ----------------------------
 		
 		var chk_users = create_checkbutton(vbox, Messages.TASK_USERS);
 	
-		chk_users.active = main_window.include_users;
+		chk_users.active = App.include_users;
 		chk_users.toggled.connect(()=>{
-			main_window.include_users = chk_users.active;
+			App.include_users = chk_users.active;
 		});
 
 		// ----------------------------
 
 		var chk_groups = create_checkbutton(vbox, Messages.TASK_GROUPS);
 
-		chk_groups.active = main_window.include_groups;
+		chk_groups.active = App.include_groups;
 		chk_groups.toggled.connect(()=>{
-			main_window.include_groups = chk_groups.active;
+			App.include_groups = chk_groups.active;
 		});
 
 		// ----------------------------
 
 		var chk_home = create_checkbutton(vbox, Messages.TASK_HOME);
 
-		chk_home.active = main_window.include_home;
+		chk_home.active = App.include_home;
 		chk_home.toggled.connect(()=>{
-			main_window.include_home = chk_home.active;
+			App.include_home = chk_home.active;
 		});
 
 		// ----------------------------
 
 		var chk_mounts = create_checkbutton(vbox, Messages.TASK_MOUNTS);
 
-		chk_mounts.active = main_window.include_mounts;
+		chk_mounts.active = App.include_mounts;
 		chk_mounts.toggled.connect(()=>{
-			main_window.include_mounts = chk_mounts.active;
+			App.include_mounts = chk_mounts.active;
 		});
 
 		// ----------------------------
 
 		var chk_icons = create_checkbutton(vbox, Messages.TASK_ICONS);
 
-		chk_icons.active = main_window.include_icons;
+		chk_icons.active = App.include_icons;
 		chk_icons.toggled.connect(()=>{
-			main_window.include_icons = chk_icons.active;
+			App.include_icons = chk_icons.active;
 		});
 
 		// ----------------------------
 
 		var chk_themes = create_checkbutton(vbox, Messages.TASK_THEMES);
 
-		chk_themes.active = main_window.include_themes;
+		chk_themes.active = App.include_themes;
 		chk_themes.toggled.connect(()=>{
-			main_window.include_themes = chk_themes.active;
+			App.include_themes = chk_themes.active;
 		});
 
 		// ----------------------------
 
 		var chk_fonts = create_checkbutton(vbox, Messages.TASK_FONTS);
 
-		chk_fonts.active = main_window.include_fonts;
+		chk_fonts.active = App.include_fonts;
 		chk_fonts.toggled.connect(()=>{
-			main_window.include_fonts = chk_fonts.active;
+			App.include_fonts = chk_fonts.active;
 		});
 
 		// ----------------------------
 
 		var chk_dconf = create_checkbutton(vbox, Messages.TASK_DCONF);
 
-		chk_dconf.active = main_window.include_dconf;
+		chk_dconf.active = App.include_dconf;
 		chk_dconf.toggled.connect(()=>{
-			main_window.include_dconf = chk_dconf.active;
+			App.include_dconf = chk_dconf.active;
 		});
 
 		// ----------------------------
 
 		var chk_cron = create_checkbutton(vbox, Messages.TASK_CRON);
 
-		chk_cron.active = main_window.include_cron;
+		chk_cron.active = App.include_cron;
 		chk_cron.toggled.connect(()=>{
-			main_window.include_cron = chk_cron.active;
+			App.include_cron = chk_cron.active;
 		});
 
 		// ----------------------------
 
 		var chk_files = create_checkbutton(vbox, Messages.TASK_FILES);
 
-		chk_files.active = main_window.include_files;
+		chk_files.active = App.include_files;
 		chk_files.toggled.connect(()=>{
-			main_window.include_files = chk_files.active;
+			App.include_files = chk_files.active;
 		});
 
 		// ----------------------------
 
 		var chk_scripts = create_checkbutton(vbox, Messages.TASK_SCRIPTS);
 
-		chk_scripts.active = main_window.include_scripts;
+		chk_scripts.active = App.include_scripts;
 		chk_scripts.toggled.connect(()=>{
-			main_window.include_scripts = chk_scripts.active;
+			App.include_scripts = chk_scripts.active;
 		});
 
 		// ----------------------------
@@ -273,7 +277,7 @@ public class SettingsWindow : Window {
 		vbox2.margin_left = 6;
 		vbox.add(vbox2);
 
-		add_option_exclude_pkg_foreign(vbox2);
+		add_option_include_pkg_foreign(vbox2);
 		
 		add_option_exclude_pkg_themes(vbox2);
 
@@ -288,9 +292,9 @@ public class SettingsWindow : Window {
 
 		chk.set_tooltip_text(_("Exclude theme packages while re-installing software.\nYou can exclude these if you are restoring themes using Aptik.\nKeep this unchecked if you want updates."));
 
-		chk.active = main_window.exclude_pkg_themes;
+		chk.active = App.exclude_pkg_themes;
 		chk.toggled.connect(()=>{
-			main_window.exclude_pkg_themes = chk.active;
+			App.exclude_pkg_themes = chk.active;
 		});
 	}
 
@@ -300,9 +304,9 @@ public class SettingsWindow : Window {
 
 		chk.set_tooltip_text(_("Exclude icon packages while re-installing software.\nYou can exclude these if you are restoring icons using Aptik.\nKeep this unchecked if you want updates."));
 
-		chk.active = main_window.exclude_pkg_icons;
+		chk.active = App.exclude_pkg_icons;
 		chk.toggled.connect(()=>{
-			main_window.exclude_pkg_icons = chk.active;
+			App.exclude_pkg_icons = chk.active;
 		});
 	}
 
@@ -312,21 +316,21 @@ public class SettingsWindow : Window {
 
 		chk.set_tooltip_text(_("Exclude font packages while re-installing software.\nYou can exclude these if you are restoring fonts using Aptik.\nKeep this unchecked if you want updates."));
 		
-		chk.active = main_window.exclude_pkg_fonts;
+		chk.active = App.exclude_pkg_fonts;
 		chk.toggled.connect(()=>{
-			main_window.exclude_pkg_fonts = chk.active;
+			App.exclude_pkg_fonts = chk.active;
 		});
 	}
 
-	private void add_option_exclude_pkg_foreign(Gtk.Box vbox){
+	private void add_option_include_pkg_foreign(Gtk.Box vbox){
 
-		var chk = create_checkbutton(vbox, _("Exclude non-native packages"));
+		var chk = create_checkbutton(vbox, _("Include non-native packages"));
 
-		chk.set_tooltip_text(_("Exclude packages with foreign architecture\nFor example, 32-bit (i386) packages on a 64-bit (amd64) system"));
+		chk.set_tooltip_text(_("Include packages with foreign architecture\nFor example, 32-bit (i386) packages on a 64-bit (amd64) system\nIncluding these packages can cause problems during restore."));
 
-		chk.active = main_window.exclude_pkg_foreign;
+		chk.active = App.include_pkg_foreign;
 		chk.toggled.connect(()=>{
-			main_window.exclude_pkg_foreign = chk.active;
+			App.include_pkg_foreign = chk.active;
 		});
 	}
 
@@ -353,9 +357,9 @@ public class SettingsWindow : Window {
 
 		chk.set_tooltip_text(_("Exclude home directories which are encrypted"));
 
-		chk.active = main_window.exclude_home_encrypted;
+		chk.active = App.exclude_home_encrypted;
 		chk.toggled.connect(()=>{
-			main_window.exclude_home_encrypted = chk.active;
+			App.exclude_home_encrypted = chk.active;
 		});
 
 		chk.sensitive = false;
@@ -367,9 +371,9 @@ public class SettingsWindow : Window {
 
 		chk.set_tooltip_text(_("Exclude hidden files and directories in home, which contain application configuration files."));
 
-		chk.active = main_window.exclude_home_hidden;
+		chk.active = App.exclude_home_hidden;
 		chk.toggled.connect(()=>{
-			main_window.exclude_home_hidden = chk.active;
+			App.exclude_home_hidden = chk.active;
 		});
 	}
 		

@@ -43,29 +43,6 @@ public class MainWindow : Window {
 
 	private TerminalWindow termwin;
 
-	public bool include_repos = true;
-	public bool include_cache = true;
-	public bool include_packages = true;
-	public bool include_users = true;
-	public bool include_groups = true;
-	public bool include_home = true;
-	public bool include_mounts = true;
-	public bool include_icons = true;
-	public bool include_themes = true;
-	public bool include_fonts = true;
-	public bool include_dconf = true;
-	public bool include_cron = true;
-	public bool include_files = true;
-	public bool include_scripts = true;
-
-	public bool exclude_pkg_icons = false;
-	public bool exclude_pkg_themes = false;
-	public bool exclude_pkg_fonts = false;
-	public bool exclude_pkg_foreign = true;
-
-	public bool exclude_home_encrypted = true;
-	public bool exclude_home_hidden = false;
-	
 	int icon_size_list = 22;
 	int button_width = 85;
 	int button_height = 15;
@@ -360,8 +337,9 @@ public class MainWindow : Window {
 	private Gtk.ButtonBox add_section_actions(int row){
 
 		var bbox = new Gtk.ButtonBox(Gtk.Orientation.HORIZONTAL);
-		bbox.set_layout(Gtk.ButtonBoxStyle.EXPAND);
+		bbox.set_layout(Gtk.ButtonBoxStyle.CENTER);
 		bbox.set_homogeneous(false);
+		bbox.set_spacing(3);
 		//bbox.margin_left = 24;
 		grid.attach(bbox, 3, row, 1, 1);
 		return bbox;
@@ -600,7 +578,7 @@ public class MainWindow : Window {
 
 			string cmd = "";
 			cmd += "pkexec aptik --backup-home";
-			cmd += exclude_home_hidden ? " --exclude-hidden" : "" ;
+			cmd += App.exclude_home_hidden ? " --exclude-hidden" : "" ;
 			cmd += " --basepath '%s'".printf(App.basepath);
 			
 			execute(cmd);
@@ -613,7 +591,7 @@ public class MainWindow : Window {
 
 			string cmd = "";
 			cmd += "pkexec aptik --restore-home";
-			cmd += exclude_home_hidden ? " --exclude-hidden" : "" ;
+			cmd += App.exclude_home_hidden ? " --exclude-hidden" : "" ;
 			cmd += " --basepath '%s'".printf(App.basepath);
 			
 			execute(cmd);
@@ -828,7 +806,7 @@ public class MainWindow : Window {
 		
 		add_section_icon(row, "edit-select-all");
 
-		add_section_label(row, Messages.TASK_ALL);
+		add_section_label(row, Messages.TASK_ALL + " (%s)".printf(_("One-click")));
 
 		//add_section_extra(row, _("Settings"));
 		
@@ -855,20 +833,20 @@ public class MainWindow : Window {
 
 			string cmd = "";
 			cmd += "pkexec aptik --backup-all";
-			cmd += (!include_repos) ? " --skip-repos" : "" ;
-			cmd += (!include_cache) ? " --skip-cache" : "" ;
-			cmd += (!include_packages) ? " --skip-packages" : "" ;
-			cmd += (!include_users) ? " --skip-users" : "" ;
-			cmd += (!include_groups) ? " --skip-groups" : "" ;
-			cmd += (!include_home) ? " --skip-home" : "" ;
-			cmd += (!include_mounts) ? " --skip-mounts" : "" ;
-			cmd += (!include_themes) ? " --skip-themes" : "" ;
-			cmd += (!include_icons) ? " --skip-icons" : "" ;
-			cmd += (!include_fonts) ? " --skip-fonts" : "" ;
-			cmd += (!include_dconf) ? " --skip-dconf" : "" ;
-			cmd += (!include_cron) ? " --skip-cron" : "" ;
-			cmd += (!include_files) ? " --skip-files" : "" ;
-			cmd += (!include_scripts) ? " --skip-scripts" : "" ;
+			cmd += (!App.include_repos) ? " --skip-repos" : "" ;
+			cmd += (!App.include_cache) ? " --skip-cache" : "" ;
+			cmd += (!App.include_packages) ? " --skip-packages" : "" ;
+			cmd += (!App.include_users) ? " --skip-users" : "" ;
+			cmd += (!App.include_groups) ? " --skip-groups" : "" ;
+			cmd += (!App.include_home) ? " --skip-home" : "" ;
+			cmd += (!App.include_mounts) ? " --skip-mounts" : "" ;
+			cmd += (!App.include_themes) ? " --skip-themes" : "" ;
+			cmd += (!App.include_icons) ? " --skip-icons" : "" ;
+			cmd += (!App.include_fonts) ? " --skip-fonts" : "" ;
+			cmd += (!App.include_dconf) ? " --skip-dconf" : "" ;
+			cmd += (!App.include_cron) ? " --skip-cron" : "" ;
+			cmd += (!App.include_files) ? " --skip-files" : "" ;
+			cmd += (!App.include_scripts) ? " --skip-scripts" : "" ;
 			cmd += " --basepath '%s'".printf(App.basepath);
 			
 			execute(cmd);
@@ -881,20 +859,20 @@ public class MainWindow : Window {
 
 			string cmd = "";
 			cmd += "pkexec aptik --restore-all";
-			cmd += (!include_repos) ? " --skip-repos" : "" ;
-			cmd += (!include_cache) ? " --skip-cache" : "" ;
-			cmd += (!include_packages) ? " --skip-packages" : "" ;
-			cmd += (!include_users) ? " --skip-users" : "" ;
-			cmd += (!include_groups) ? " --skip-groups" : "" ;
-			cmd += (!include_home) ? " --skip-home" : "" ;
-			cmd += (!include_mounts) ? " --skip-mounts" : "" ;
-			cmd += (!include_themes) ? " --skip-themes" : "" ;
-			cmd += (!include_icons) ? " --skip-icons" : "" ;
-			cmd += (!include_fonts) ? " --skip-fonts" : "" ;
-			cmd += (!include_dconf) ? " --skip-dconf" : "" ;
-			cmd += (!include_cron) ? " --skip-cron" : "" ;
-			cmd += (!include_files) ? " --skip-files" : "" ;
-			cmd += (!include_scripts) ? " --skip-scripts" : "" ;
+			cmd += (!App.include_repos) ? " --skip-repos" : "" ;
+			cmd += (!App.include_cache) ? " --skip-cache" : "" ;
+			cmd += (!App.include_packages) ? " --skip-packages" : "" ;
+			cmd += (!App.include_users) ? " --skip-users" : "" ;
+			cmd += (!App.include_groups) ? " --skip-groups" : "" ;
+			cmd += (!App.include_home) ? " --skip-home" : "" ;
+			cmd += (!App.include_mounts) ? " --skip-mounts" : "" ;
+			cmd += (!App.include_themes) ? " --skip-themes" : "" ;
+			cmd += (!App.include_icons) ? " --skip-icons" : "" ;
+			cmd += (!App.include_fonts) ? " --skip-fonts" : "" ;
+			cmd += (!App.include_dconf) ? " --skip-dconf" : "" ;
+			cmd += (!App.include_cron) ? " --skip-cron" : "" ;
+			cmd += (!App.include_files) ? " --skip-files" : "" ;
+			cmd += (!App.include_scripts) ? " --skip-scripts" : "" ;
 			cmd += " --basepath '%s'".printf(App.basepath);
 			
 			execute(cmd);
