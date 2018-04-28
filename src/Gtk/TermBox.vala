@@ -45,6 +45,8 @@ public class TermBox : Gtk.Box {
 	public const string DEF_COLOR_FG = "#DCDCDC";
 	public const string DEF_COLOR_BG = "#2C2C2C";
 
+	public signal void shell_exited();
+	
 	public signal void child_exited();
 	
 	public TermBox(Gtk.Window _window){
@@ -85,13 +87,23 @@ public class TermBox : Gtk.Box {
 		term.scroll_on_output = true;
 		term.scrollback_lines = 100000;
 
-		var fontdesc = Pango.FontDescription.from_string("liberation mono,droid sans mono,ubuntu mono,monospace regular 11");
+		var fontdesc = Pango.FontDescription.from_string("liberation mono,droid sans mono,ubuntu mono,monospace regular 10");
 
 		set_font_desc(fontdesc);
 		
 		set_color_foreground("#EEEEEC");
 		
 		set_color_background("#2E3436");
+
+		// donation link
+
+		var lbtn = new Gtk.LinkButton.with_label("", _("Buy me a coffee"));
+		lbtn.set_tooltip_text("Donate to: teejeetech@gmail.com");
+		this.add(lbtn);
+
+		lbtn.clicked.connect(() => {
+			xdg_open("https://www.paypal.com/cgi-bin/webscr?business=teejeetech@gmail.com&cmd=_xclick&currency_code=USD&amount=5&item_name=Aptik%20Donation", "");
+		});
 	}
 
 	public void start_shell(){
@@ -125,8 +137,9 @@ public class TermBox : Gtk.Box {
 			init_bash();
 
 			term.child_exited.connect((status)=>{
-				log_debug("TermBox: child_exited(): pid=%d, status=%d".printf(child_pid, status));
+				log_debug("TermBox: shell_exited(): pid=%d, status=%d".printf(child_pid, status));
 				child_exited();
+				shell_exited();
 				//if (!cancelled){
 				//	start_shell();
 				//}
@@ -193,6 +206,17 @@ fi
 		}
 		
 		term.feed_child(cmd, -1);
+
+		Timeout.add(1000, ()=>{
+
+			if (!has_running_process){
+				
+				child_exited();
+				return false;
+			}
+			
+			return true;
+		});
 	}
 
 	public void refresh(){

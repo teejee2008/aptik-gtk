@@ -72,8 +72,6 @@ public class RepoWindow : Window {
 		set_modal(true);
 		is_restore_view = restore;
 
-		window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
-
 		destroy.connect(()=>{
 			parent.present();
 		});
@@ -85,7 +83,7 @@ public class RepoWindow : Window {
 
 	public void init_window () {
 	
-		window_position = WindowPosition.CENTER;
+		window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
 		set_default_size (def_width, def_height);
 		icon = get_app_icon(16);
 		resizable = true;

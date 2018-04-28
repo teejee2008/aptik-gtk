@@ -55,8 +55,6 @@ public class SettingsWindow : Window {
 
 		this.title = _("Settings");
 
-		window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
-
 		this.destroy.connect(()=>{
 			parent.present();
 		});
@@ -66,7 +64,7 @@ public class SettingsWindow : Window {
 
 	public void init_window () {
 	
-		window_position = WindowPosition.CENTER;
+		window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
 		set_default_size (def_width, def_height);
 		icon = get_app_icon(16);
 		resizable = true;

@@ -36,100 +36,375 @@ using TeeJee.GtkHelper;
 public class MainWindow : Window {
 	
 	private Box vbox_main;
+	private Gtk.Paned pane;
+	private Gtk.StackSidebar sidebar;
+	private Gtk.Stack stack;
+	private TermBox term;
 
-	private Grid grid;
+	private int window_width = 900;
+	private int window_height = 600;
 
-	private Gtk.Entry txt_basepath;
-
-	private TerminalWindow termwin;
-
-	int icon_size_list = 22;
-	int button_width = 85;
-	int button_height = 15;
-
+	private GeneralBox box_general;
+	private PackageManager mgr_pkg;
+	private RepoManager mgr_repo;
+	private PackageCacheManager mgr_cache;
+	private ThemeManager mgr_themes;
+	private ThemeManager mgr_icons;
+	private FontManager mgr_fonts;
+	private DconfManager mgr_dconf;
+	private CronManager mgr_cron;
+	private UserHomeManager mgr_home;
+	private MountManager mgr_mounts;
+	private UserManager mgr_users;
+	private GroupManager mgr_groups;
+	
 	public MainWindow() {
 		
 		title = AppName + " v" + AppVersion;
 		window_position = WindowPosition.CENTER;
 		resizable = false;
 		destroy.connect (Gtk.main_quit);
-		//set_default_size (def_width, def_height);
 		icon = get_app_icon(16);
 
-		//vboxMain
-		vbox_main = new Box (Orientation.VERTICAL, 6);
-		vbox_main.margin = 6;
-		//vbox_main.set_size_request (def_width, def_height);
-		add (vbox_main);
+		//vbox_main
+		vbox_main = new Gtk.Box(Orientation.VERTICAL, 6);
+		//vbox_main.margin = 6;
+		vbox_main.set_size_request(window_width, window_height);
+		this.add(vbox_main);
 
+		init_ui();
+
+		init_ui_general();
+
+		init_ui_repos();
+
+		init_ui_cache();
+
+		init_ui_packages();
+
+		init_ui_users();
+
+		init_ui_groups();
+
+		init_ui_home();
+
+		init_ui_mounts();
+
+		init_ui_dconf();
+
+		init_ui_cron();
+
+		init_ui_icons();
+
+		init_ui_themes();
+
+		init_ui_fonts();
+
+		init_ui_console();
+		
+		show_all();
+		
 		//actions ---------------------------------------------
 
-		init_section_location();
+		//init_section_location();
 
 		//init_section_password();
 
-		init_section_backup();
+		//init_section_backup();
 
-		init_section_header_links();
+		//init_section_header_links();
 		
-		txt_basepath.text = App.basepath;
+		//txt_basepath.text = App.basepath;
 
-		termwin = new TerminalWindow.with_parent(this, false, true);
-		termwin.start_shell();	
+		//termwin = new TerminalWindow.with_parent(this, false, true);
+		//termwin.start_shell();	
 	
 		//init_section_toolbar_bottom();
 
 		//init_section_status();
 	}
 
-	private void init_section_header_links() {
+	private void init_ui(){
+
+		pane = new Gtk.Paned(Gtk.Orientation.HORIZONTAL);
+		//pane.margin = 6;
+		vbox_main.add(pane);
+
+		sidebar = new Gtk.StackSidebar();
+		sidebar.set_size_request(120,-1);
+		sidebar.expand = true;
+		pane.pack1(sidebar, false, false); //resize, shrink
+
+		sidebar.button_release_event.connect(sidebar_button_release);
+
+		stack = new Gtk.Stack();
+		stack.set_transition_duration(100);
+        stack.set_transition_type(Gtk.StackTransitionType.SLIDE_UP_DOWN);
+        stack.expand = true;
+		pane.pack2(stack, true, true); //resize, shrink
+
+		pane.wide_handle = false;
 		
-		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
-		//hbox.margin_bottom = 6;
-		//hbox.margin_right = 6;
-		vbox_main.pack_start (hbox, false, true, 0);
-
-		var expander = new Gtk.Label("");
-		expander.hexpand = true;
-		hbox.add(expander);
-
-		// donate link
-		var button = new Gtk.LinkButton.with_label("", _("Buy me a coffee"));
-		hbox.add(button);
-		
-		button.clicked.connect(() => {
-			var win = new DonationWindow();
-			win.show();
-		});
-
-		// user manual
-		button = new Gtk.LinkButton.with_label("", _("User Manual"));
-		hbox.add(button);
-		
-		button.clicked.connect(() => {
-			xdg_open("https://github.com/teejee2008/aptik-next/blob/master/MANUAL.md");
-		});
-
-		// about
-		button = new Gtk.LinkButton.with_label("", _("About"));
-		hbox.add(button);
-		
-		button.clicked.connect(() => {
-			btn_show_about_window();
-		});
-
-		if (cmd_exists("aptik-gen")){
-
-			// generate installer
-			button = new Gtk.LinkButton.with_label("", _("Create Installer"));
-			hbox.add(button);
-			
-			button.clicked.connect(() => {
-				
-			});
-		}
+		sidebar.set_stack(stack);
 	}
 
+	private bool sidebar_button_release(Gdk.EventButton event){
+
+		log_debug("sidebar: %s".printf(stack.visible_child_name));
+
+		switch(stack.visible_child_name){
+		case "repos":
+			if (mgr_repo.items.size == 0){
+				mgr_repo.init_ui_mode(App.mode);
+			}
+			break;
+		case "cache":
+			if (mgr_cache.items.size == 0){
+				mgr_cache.init_ui_mode(App.mode);
+			}
+			break;
+		case "packages":
+			if (mgr_pkg.items.size == 0){
+				mgr_pkg.init_ui_mode(App.mode);
+			}
+			break;
+		case "themes":
+			if (mgr_themes.items.size == 0){
+				mgr_themes.init_ui_mode(App.mode);
+			}
+			break;
+		case "icons":
+			if (mgr_icons.items.size == 0){
+				mgr_icons.init_ui_mode(App.mode);
+			}
+			break;
+		case "fonts":
+			if (mgr_fonts.items.size == 0){
+				mgr_fonts.init_ui_mode(App.mode);
+			}
+			break;
+		case "users":
+			if (mgr_users.items.size == 0){
+				mgr_users.init_ui_mode(App.mode);
+			}
+			break;
+		case "groups":
+			if (mgr_groups.items.size == 0){
+				mgr_groups.init_ui_mode(App.mode);
+			}
+			break;
+		case "dconf":
+			if (mgr_dconf.items.size == 0){
+				mgr_dconf.init_ui_mode(App.mode);
+			}
+			break;
+		case "cron":
+			if (mgr_cron.items.size == 0){
+				mgr_cron.init_ui_mode(App.mode);
+			}
+			break;
+		case "home":
+			if (mgr_home.items.size == 0){
+				mgr_home.init_ui_mode(App.mode);
+			}
+			break;
+		case "mounts":
+			if (mgr_mounts.items.size == 0){
+				mgr_mounts.init_ui_mode(App.mode);
+			}
+			break;
+		}
+
+		return false;
+	}
+
+	private void init_ui_general(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "general", _("General"));
+
+		box_general = new GeneralBox(this);
+		vbox.add(box_general);
+
+		box_general.mode_changed.connect(()=>{
+			
+			mgr_repo.items.clear();
+			mgr_cache.items.clear();
+			mgr_pkg.items.clear();
+			mgr_icons.items.clear();
+			mgr_themes.items.clear();
+			mgr_fonts.items.clear();
+			mgr_users.items.clear();
+			mgr_groups.items.clear();
+			mgr_dconf.items.clear();
+			mgr_cron.items.clear();
+			mgr_home.items.clear();
+			mgr_mounts.items.clear();
+		});
+	}
+	
+	private void init_ui_repos(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "repos", _("Repos"));
+
+		mgr_repo = new RepoManager(this);
+		vbox.add(mgr_repo);
+	}
+	
+	private void init_ui_cache(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "cache", _("Cache"));
+
+		mgr_cache = new PackageCacheManager(this);
+		vbox.add(mgr_cache);
+	}
+
+	private void init_ui_packages(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "packages", _("Packages"));
+
+		mgr_pkg = new PackageManager(this);
+		vbox.add(mgr_pkg);
+	}
+
+	private void init_ui_users(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "users", _("Users"));
+
+		mgr_users = new UserManager(this);
+		vbox.add(mgr_users);
+	}
+
+	private void init_ui_groups(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "groups", _("Groups"));
+
+		mgr_groups = new GroupManager(this);
+		vbox.add(mgr_groups);
+	}
+
+	private void init_ui_home(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "home", _("Home"));
+
+		mgr_home = new UserHomeManager(this);
+		vbox.add(mgr_home);
+	}
+
+	private void init_ui_mounts(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "mounts", _("Mounts"));
+
+		mgr_mounts = new MountManager(this);
+		vbox.add(mgr_mounts);
+	}
+
+	private void init_ui_dconf(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "dconf", _("DConf"));
+
+		mgr_dconf = new DconfManager(this);
+		vbox.add(mgr_dconf);
+	}
+
+	private void init_ui_cron(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "cron", _("Cron"));
+
+		mgr_cron = new CronManager(this);
+		vbox.add(mgr_cron);
+	}
+
+	private void init_ui_icons(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "icons", _("Icons"));
+
+		mgr_icons = new ThemeManager(this, "icons");
+		vbox.add(mgr_icons);
+	}
+
+	private void init_ui_themes(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "themes", _("Themes"));
+
+		mgr_themes = new ThemeManager(this, "themes");
+		vbox.add(mgr_themes);
+	}
+
+	private void init_ui_fonts(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "fonts", _("Fonts"));
+
+		mgr_fonts = new FontManager(this);
+		vbox.add(mgr_fonts);
+	}
+
+	private void init_ui_console(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "console", _("Console"));
+
+		term = new TermBox(this);
+		term.expand = true;
+		vbox.add(term);
+		
+		term.start_shell();
+
+	}
+
+	public void execute(string cmd){
+		
+		stack.visible_child_name = "console";
+
+		sidebar.sensitive = false;
+		
+		term.child_exited.connect(()=>{
+			sidebar.sensitive = true;
+		});
+
+		term.feed_command(cmd);
+	}
+	
 	private void btn_show_about_window(){
 		
 		var dialog = new AboutWindow();
@@ -176,720 +451,11 @@ public class MainWindow : Window {
 		dialog.show_all();
 	}
 	
-	private void init_section_location() {
-		
-		// header
-		var label = new Label ("<b>" + _("Backup Location") + "</b>");
-		label.set_use_markup(true);
-		label.halign = Align.START;
-		//label.margin_top = 12;
-		label.margin_bottom = 6;
-		vbox_main.pack_start (label, false, true, 0);
-		
-		var hbox = new Box (Gtk.Orientation.HORIZONTAL, 6);
-		hbox.margin_bottom = 6;
-		hbox.margin_right = 6;
-		vbox_main.pack_start (hbox, false, true, 0);
-
-		hbox.set_size_request(500,-1);
-
-		// entry
-		var entry = new Gtk.Entry();
-		entry.hexpand = true;
-		//entry.secondary_icon_stock = "gtk-open";
-		entry.placeholder_text = _("Select backup directory");
-		entry.margin_left = 6;
-		hbox.pack_start (entry, true, true, 0);
-		txt_basepath = entry;
-
-		entry.changed.connect(() => {
-			App.basepath = txt_basepath.text;
-		});
-		
-		entry.icon_release.connect((p0, p1) => {
-			backup_location_browse();
-		});
-
-		// btn_browse_backup_dir
-		var button = new Gtk.Button.with_label (" " + _("Select") + " ");
-		button.set_size_request(button_width, button_height);
-		button.set_tooltip_text(_("Select backup location"));
-		hbox.pack_start (button, false, true, 0);
-
-		button.clicked.connect(backup_location_browse);
-		
-		// btn_open_backup_dir
-		button = new Gtk.Button.with_label (" " + _("Open") + " ");
-		button.set_size_request(button_width, button_height);
-		button.set_tooltip_text(_("Open backup location"));
-		hbox.pack_start (button, false, true, 0);
-
-		button.clicked.connect(() => {
-			if (check_backup_folder()) {
-				exo_open_folder(App.basepath, false);
-			}
-		});
-
-		button.grab_focus();
-	}
-
-	private void backup_location_browse(){
-		
-		//chooser
-		var chooser = new Gtk.FileChooserDialog(
-			"Select Path",
-			this,
-			FileChooserAction.SELECT_FOLDER,
-			"_Cancel",
-			Gtk.ResponseType.CANCEL,
-			"_Open",
-			Gtk.ResponseType.ACCEPT
-		);
-
-		chooser.select_multiple = false;
-		chooser.set_filename(App.basepath);
-
-		if (chooser.run() == Gtk.ResponseType.ACCEPT) {
-			txt_basepath.text = chooser.get_filename();
-		}
-
-		chooser.destroy();
-	}
-	
-	private void init_section_backup() {
-
-		// lbl_header_backup
-		var label = new Label ("<b>" + _("Backup &amp; Restore") + "</b>");
-		label.set_use_markup(true);
-		label.halign = Align.START;
-		label.margin_bottom = 6;
-		vbox_main.pack_start (label, false, true, 0);
-
-		//grid
-		grid = new Grid();
-		grid.set_column_spacing(6);
-		grid.set_row_spacing(3);
-		grid.margin_left = 6;
-		grid.margin_bottom = 6;
-		vbox_main.pack_start (grid, false, true, 0);
-
-		int row = -1;
-
-		init_section_repos(++row);
-
-		init_section_cache(++row);
-
-		init_section_packages(++row);
-
-		init_section_users(++row);
-
-		init_section_groups(++row);
-
-		init_section_home(++row);
-		
-		init_section_mounts(++row);
-		
-		init_section_icons(++row);
-
-		init_section_themes(++row);
-		
-		init_section_fonts(++row);
-
-		init_section_dconf(++row);
-		
-		init_section_cron(++row);
-
-		var sep = new Gtk.Separator(Gtk.Orientation.HORIZONTAL);
-		sep.margin = 6;
-		grid.attach(sep, 0, ++row, 4, 1);
-
-		init_section_all(++row);
-	}
-
-	// helpers -----------------------------
-
-	private void add_section_icon(int row, string icon_name) {
-
-		var img = IconManager.lookup_image(icon_name, icon_size_list);
-		grid.attach(img, 0, row, 1, 1);
-	}
-	
-	private void add_section_label(int row, string text) {
-
-		var label = new Gtk.Label(text);
-		//label.set_tooltip_text(tooltip);
-		label.set_use_markup(true);
-		label.halign = Align.START;
-		label.hexpand = true;
-		grid.attach(label, 1, row, 1, 1);
-	}
-
-	private Gtk.ButtonBox add_section_extra(int row) {
-
-		var bbox = new Gtk.ButtonBox(Gtk.Orientation.HORIZONTAL);
-		bbox.set_layout(Gtk.ButtonBoxStyle.EXPAND);
-		bbox.set_homogeneous(false);
-		//bbox.margin_left = 24;
-		grid.attach(bbox, 2, row, 1, 1);
-		return bbox;
-	}
-
-	private Gtk.ButtonBox add_section_actions(int row){
-
-		var bbox = new Gtk.ButtonBox(Gtk.Orientation.HORIZONTAL);
-		bbox.set_layout(Gtk.ButtonBoxStyle.CENTER);
-		bbox.set_homogeneous(false);
-		bbox.set_spacing(3);
-		//bbox.margin_left = 24;
-		grid.attach(bbox, 3, row, 1, 1);
-		return bbox;
-	}
-
-	private Gtk.Button add_button(Gtk.ButtonBox bbox, string text) {
-
-		var button = new Gtk.Button.with_label(text);
-		//button.set_size_request(button_width, button_height);
-		bbox.add(button);
-		return button;
-	}
-
-	private Gtk.Button add_button_view(Gtk.ButtonBox bbox) {
-
-		return add_button(bbox, _("List"));
-	}
-
-	private Gtk.Button add_button_backup(Gtk.ButtonBox bbox) {
-
-		return add_button(bbox, _("Backup"));
-	}
-
-	private Gtk.Button add_button_restore(Gtk.ButtonBox bbox) {
-
-		return add_button(bbox, _("Restore"));
-	}
-
-	public void execute(string cmd){
-
-		termwin.reset();
-		termwin.show_all();		
-		termwin.execute_command(cmd);
-	}
-	
-	// sections ---------------------------------------
-	
-	private void init_section_repos(int row) {
-		
-		add_section_icon(row, "x-system-software-sources");
-
-		add_section_label(row, Messages.TASK_REPOS);
-
-		var bbox = add_section_actions(row);
-
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --list-repos --basepath '%s'".printf(App.basepath));
-		});*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			var win = new RepoWindow(this, false);
-			win.show_all();
-			
-			//execute("pkexec aptik --backup-repos --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			var win = new RepoWindow(this, true);
-			win.show_all();
-			
-			//execute("pkexec aptik --restore-repos --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_cache(int row) {
-		
-		add_section_icon(row, "download");
-
-		add_section_label(row, Messages.TASK_CACHE);
-
-		var bbox = add_section_actions(row);
-
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			//execute("pkexec aptik --list-cache --basepath '%s'".printf(App.basepath));
-		});*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --backup-cache --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --restore-cache --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_packages(int row) {
-		
-		add_section_icon(row, "package-x-generic");
-
-		add_section_label(row, Messages.TASK_PACKAGES);
-
-		var bbox = add_section_actions(row);
-		
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-
-			var win = new PackageWindow(this, false);
-			win.show_all();
-			
-			//execute("pkexec aptik --list-installed-user --basepath '%s'".printf(App.basepath));
-		});*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			var win = new PackageWindow(this, false);
-			win.show_all();
-			
-			//execute("pkexec aptik --backup-packages --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			var win = new PackageWindow(this, true);
-			win.show_all();
-			
-			//execute("pkexec aptik --restore-packages --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_users(int row) {
-		
-		add_section_icon(row, "config-users");
-
-		add_section_label(row, Messages.TASK_USERS);
-
-		var bbox = add_section_actions(row);
-		
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --list-users --basepath '%s'".printf(App.basepath));
-		});*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --backup-users --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --restore-users --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_groups(int row) {
-		
-		add_section_icon(row, "config-users");
-
-		add_section_label(row, Messages.TASK_GROUPS);
-
-		var bbox = add_section_actions(row);
-		
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --list-groups --basepath '%s'".printf(App.basepath));
-		});*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --backup-groups --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --restore-groups --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_home(int row) {
-		
-		add_section_icon(row, "user-home");
-
-		add_section_label(row, Messages.TASK_HOME);
-
-		var bbox = add_section_actions(row);
-		
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --list-home --basepath '%s'".printf(App.basepath));
-		});*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			string cmd = "";
-			cmd += "pkexec aptik --backup-home";
-			cmd += App.exclude_home_hidden ? " --exclude-hidden" : "" ;
-			cmd += " --basepath '%s'".printf(App.basepath);
-			
-			execute(cmd);
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			string cmd = "";
-			cmd += "pkexec aptik --restore-home";
-			cmd += App.exclude_home_hidden ? " --exclude-hidden" : "" ;
-			cmd += " --basepath '%s'".printf(App.basepath);
-			
-			execute(cmd);
-		});
-	}
-
-	private void init_section_mounts(int row) {
-		
-		add_section_icon(row, "drive-harddisk");
-
-		add_section_label(row, Messages.TASK_MOUNTS);
-
-		var bbox = add_section_actions(row);
-		
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --list-mounts --basepath '%s'".printf(App.basepath));
-		});*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --backup-mounts --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --restore-mounts --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_icons(int row) {
-		
-		add_section_icon(row, "preferences-theme");
-
-		add_section_label(row, Messages.TASK_ICONS);
-
-		var bbox = add_section_actions(row);
-		
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --list-icons --basepath '%s'".printf(App.basepath));
-		});*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --backup-icons --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --restore-icons --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_themes(int row) {
-		
-		add_section_icon(row, "preferences-theme");
-
-		add_section_label(row, Messages.TASK_THEMES);
-
-		var bbox = add_section_actions(row);
-		
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --list-themes --basepath '%s'".printf(App.basepath));
-		});*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --backup-themes --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --restore-themes --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_fonts(int row) {
-		
-		add_section_icon(row, "preferences-theme");
-
-		add_section_label(row, Messages.TASK_FONTS);
-
-		var bbox = add_section_actions(row);
-		
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --list-fonts --basepath '%s'".printf(App.basepath));
-		});
-
-		button.sensitive = false;*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --backup-fonts --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --restore-fonts --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_dconf(int row) {
-		
-		add_section_icon(row, "preferences-system");
-
-		add_section_label(row, Messages.TASK_DCONF);
-
-		var bbox = add_section_actions(row);
-		
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			//execute("pkexec aptik --list-dconf --basepath '%s'".printf(App.basepath));
-		});
-
-		button.sensitive = false;*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --backup-dconf --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --restore-dconf --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_cron(int row) {
-		
-		add_section_icon(row, "clock");
-
-		add_section_label(row, Messages.TASK_CRON);
-
-		var bbox = add_section_actions(row);
-		
-		/*var button = add_button_view(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			//execute("pkexec aptik --list-cron --basepath '%s'".printf(App.basepath));
-		});
-
-		button.sensitive = false;*/
-
-		var button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --backup-cron --basepath '%s'".printf(App.basepath));
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			execute("pkexec aptik --restore-cron --basepath '%s'".printf(App.basepath));
-		});
-	}
-
-	private void init_section_all(int row) {
-		
-		add_section_icon(row, "edit-select-all");
-
-		add_section_label(row, Messages.TASK_ALL + " (%s)".printf(_("One-click")));
-
-		//add_section_extra(row, _("Settings"));
-		
-		var bbox = add_section_extra(row);
-		
-		var button = add_button(bbox, _("Settings"));
-		
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			var win = new SettingsWindow(this);
-			win.show_all();
-		});
-
-		// ---------------------------------------
-		
-		bbox = add_section_actions(row);
-		
-		button = add_button_backup(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			string cmd = "";
-			cmd += "pkexec aptik --backup-all";
-			cmd += (!App.include_repos) ? " --skip-repos" : "" ;
-			cmd += (!App.include_cache) ? " --skip-cache" : "" ;
-			cmd += (!App.include_packages) ? " --skip-packages" : "" ;
-			cmd += (!App.include_users) ? " --skip-users" : "" ;
-			cmd += (!App.include_groups) ? " --skip-groups" : "" ;
-			cmd += (!App.include_home) ? " --skip-home" : "" ;
-			cmd += (!App.include_mounts) ? " --skip-mounts" : "" ;
-			cmd += (!App.include_themes) ? " --skip-themes" : "" ;
-			cmd += (!App.include_icons) ? " --skip-icons" : "" ;
-			cmd += (!App.include_fonts) ? " --skip-fonts" : "" ;
-			cmd += (!App.include_dconf) ? " --skip-dconf" : "" ;
-			cmd += (!App.include_cron) ? " --skip-cron" : "" ;
-			cmd += (!App.include_files) ? " --skip-files" : "" ;
-			cmd += (!App.include_scripts) ? " --skip-scripts" : "" ;
-			cmd += " --basepath '%s'".printf(App.basepath);
-			
-			execute(cmd);
-		});
-
-		button = add_button_restore(bbox);
-		button.clicked.connect(()=>{
-			
-			if (!check_backup_folder()) { return; }
-
-			string cmd = "";
-			cmd += "pkexec aptik --restore-all";
-			cmd += (!App.include_repos) ? " --skip-repos" : "" ;
-			cmd += (!App.include_cache) ? " --skip-cache" : "" ;
-			cmd += (!App.include_packages) ? " --skip-packages" : "" ;
-			cmd += (!App.include_users) ? " --skip-users" : "" ;
-			cmd += (!App.include_groups) ? " --skip-groups" : "" ;
-			cmd += (!App.include_home) ? " --skip-home" : "" ;
-			cmd += (!App.include_mounts) ? " --skip-mounts" : "" ;
-			cmd += (!App.include_themes) ? " --skip-themes" : "" ;
-			cmd += (!App.include_icons) ? " --skip-icons" : "" ;
-			cmd += (!App.include_fonts) ? " --skip-fonts" : "" ;
-			cmd += (!App.include_dconf) ? " --skip-dconf" : "" ;
-			cmd += (!App.include_cron) ? " --skip-cron" : "" ;
-			cmd += (!App.include_files) ? " --skip-files" : "" ;
-			cmd += (!App.include_scripts) ? " --skip-scripts" : "" ;
-			cmd += " --basepath '%s'".printf(App.basepath);
-			
-			execute(cmd);
-		});
-	}
-
-	private bool check_backup_folder() {
-		if (dir_exists (txt_basepath.text)) {
-			return true;
-		}
-		else {
-			string title = _("Backup Location Not Found");
-			string msg = _("Select a valid path for backup location");
-			gtk_messagebox(title, msg, this, false);
-			return false;
-		}
-	}
 }
 
+public enum Mode{
+	BACKUP,
+	RESTORE,
+	MANAGE
+}
 
