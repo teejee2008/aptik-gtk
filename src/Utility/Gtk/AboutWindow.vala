@@ -31,7 +31,7 @@ using TeeJee.GtkHelper;
 using TeeJee.System;
 using TeeJee.Misc;
 
-public class AboutWindow : Dialog {
+public class AboutWindow : Gtk.Window {
 	
 	private Gtk.Box vbox_main;
 	private Gtk.Box vbox_logo;
@@ -41,7 +41,7 @@ public class AboutWindow : Dialog {
 	private Gtk.Box hbox_action;
 	private Gtk.Button btn_license;
 	private Gtk.Button btn_credits;
-	private Gtk.Button btn_close;
+	//private Gtk.Button btn_close;
 
 	private Gtk.Image img_logo;
 	private Gtk.Label lbl_program_name;
@@ -50,6 +50,8 @@ public class AboutWindow : Dialog {
 	private Gtk.Label lbl_license;
 	private Gtk.LinkButton lbtn_website;
 	private Gtk.Label lbl_copyright;
+	private Gtk.Label lbl_author_name;
+	private Gtk.Label lbl_author_email;
 
 	private string[] _artists;
 	public string[] artists{
@@ -98,6 +100,26 @@ public class AboutWindow : Dialog {
 		}
 		set{
 			_copyright = value;
+		}
+	}
+
+	private string _author_name = "";
+	public string author_name{
+		get{
+			return _author_name;
+		}
+		set{
+			_author_name = value;
+		}
+	}
+	
+	private string _author_email = "";
+	public string author_email{
+		get{
+			return _author_email;
+		}
+		set{
+			_author_email = value;
 		}
 	}
 
@@ -203,9 +225,10 @@ public class AboutWindow : Dialog {
 
 	private string username = "";
 	
-	public AboutWindow() {
+	public AboutWindow(Gtk.Window parent_window) {
 		
         window_position = WindowPosition.CENTER_ON_PARENT;
+        set_transient_for(parent_window);
 		set_destroy_with_parent (true);
 		set_modal (true);
         skip_taskbar_hint = false;
@@ -215,10 +238,11 @@ public class AboutWindow : Dialog {
 			username = get_username();
 		}
 
-	    vbox_main = get_content_area();
-		vbox_main.margin = 6;
+	    vbox_main = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox_main.margin = 12;
 		vbox_main.spacing = 6;
-
+		add(vbox_main);
+		
 		vbox_logo = new Gtk.Box(Orientation.VERTICAL,0);
 		vbox_main.add(vbox_logo);
 
@@ -243,7 +267,7 @@ public class AboutWindow : Dialog {
 		label.wrap_mode = Pango.WrapMode.WORD_CHAR;
 		label.use_markup = true;
 		label.margin = 6;
-		label.margin_right = 25;
+		//label.margin_right = 25;
 		sw_license.add(label);
 		lbl_license = label;
 		
@@ -301,6 +325,20 @@ public class AboutWindow : Dialog {
 		lbl_copyright.xalign = 0.5f;
 		vbox_logo.add(lbl_copyright);
 
+		//author_name
+		lbl_author_name = new Gtk.Label("");
+		lbl_author_name.set_use_markup(true);
+		lbl_author_name.margin_top = 5;
+		lbl_author_name.xalign = 0.5f;
+		vbox_logo.add(lbl_author_name);
+
+		//author_email
+		lbl_author_email = new Gtk.Label("");
+		lbl_author_email.set_use_markup(true);
+		lbl_author_email.margin_top = 5;
+		lbl_author_email.xalign = 0.5f;
+		vbox_logo.add(lbl_author_email);
+
 		//spacer_bottom
 		var spacer_bottom = new Gtk.Label("");
 		spacer_bottom.margin_top = 20;
@@ -311,17 +349,24 @@ public class AboutWindow : Dialog {
 
 	private void add_action_buttons(){
 		
-		hbox_action = (Box) get_action_area();
-
+		hbox_action = new Gtk.Box(Orientation.VERTICAL, 6);
+		hbox_action.hexpand = true;
+		vbox_main.add(hbox_action);
+		
+		var bbox = new Gtk.ButtonBox(Orientation.HORIZONTAL);
+		bbox.set_layout(Gtk.ButtonBoxStyle.EXPAND);
+		bbox.hexpand = true;
+		hbox_action.add(bbox);
+		
 		//btn_license
-		btn_license = new Gtk.Button.with_label("  " + _("License"));
+		btn_license = new Gtk.Button.with_label(_("License"));
 		btn_license.image = IconManager.lookup_image("help-about-symbolic", 16);
-		hbox_action.add(btn_license);
+		bbox.add(btn_license);
 
 		//btn_credits
-		btn_credits = new Gtk.Button.with_label("  " + _("Credits"));
+		btn_credits = new Gtk.Button.with_label(_("Credits"));
 		btn_credits.image = IconManager.lookup_image("help-about-symbolic", 16);
-		hbox_action.add(btn_credits);
+		bbox.add(btn_credits);
 
 		// handlers
 		
@@ -342,14 +387,14 @@ public class AboutWindow : Dialog {
 			}
 
 			if (vbox_license.visible){
-				btn_license.label = "  " + _("Back");
+				btn_license.label = _("Back");
 				btn_license.image = IconManager.lookup_image("go-previous-symbolic", 16);
 				btn_license.always_show_image = true;
 				btn_credits.hide();
 				this.resize(700, 500);
 			}
 			else{
-				btn_license.label = "  " + _("License");
+				btn_license.label = _("License");
 				btn_license.image = null;
 				btn_license.always_show_image = false;
 				btn_credits.show();
@@ -374,13 +419,13 @@ public class AboutWindow : Dialog {
 			}
 
 			if (vbox_credits.visible){
-				btn_credits.label = "  " + _("Back");
+				btn_credits.label = _("Back");
 				btn_credits.image = IconManager.lookup_image("go-previous-symbolic", 16);
 				btn_credits.always_show_image = true;
 				btn_license.hide();
 			}
 			else{
-				btn_credits.label = "  " + _("Credits");
+				btn_credits.label = _("Credits");
 				btn_credits.image = null;
 				btn_credits.always_show_image = false;
 				btn_license.show();
@@ -399,9 +444,9 @@ public class AboutWindow : Dialog {
 		}*/
 
 		// close
-		var button = new Gtk.Button.with_label("  " + _("Close"));
+		var button = new Gtk.Button.with_label(_("Close"));
 		button.image = IconManager.lookup_image("window-close", 16);
-		hbox_action.add(button);
+		bbox.add(button);
 
 		button.clicked.connect(()=>{ this.destroy(); });
 	}
@@ -412,10 +457,12 @@ public class AboutWindow : Dialog {
 		img_logo.pixbuf = logo.scale_simple(128,128,Gdk.InterpType.HYPER);
 		lbl_program_name.label = "<span size='larger'>%s</span>".printf(program_name);
 		lbl_version.label = "v%s".printf(version);
-		lbl_comments.label = "%s".printf(comments);
+		lbl_comments.label = "%s".printf(escape_html(comments));
 		lbtn_website.uri = website;
 		lbtn_website.label = website_label;
 		lbl_copyright.label = "<span>%s</span>".printf(copyright);
+		lbl_author_name.label = "<span>%s</span>".printf(author_name);
+		lbl_author_email.label = "<span style=\"italic\">%s</span>".printf(author_email);
 
 		if (license.length > 0){
 			lbl_license.label = license + "\n\n" + escape_html(GPLv2LicenseText);

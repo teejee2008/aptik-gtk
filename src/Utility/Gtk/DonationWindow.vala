@@ -31,14 +31,19 @@ using TeeJee.System;
 using TeeJee.Misc;
 using TeeJee.GtkHelper;
 
-public class DonationWindow : Dialog {
+public class DonationWindow : Gtk.Window {
 
 	private string username = "";
 
-	public DonationWindow() {
+	private Gtk.Window parent_window;
+	
+	public DonationWindow(Gtk.Window _parent) {
 
+		parent_window = _parent;
+		
 		set_title(_("Donate"));
 		window_position = WindowPosition.CENTER_ON_PARENT;
+		set_transient_for(parent_window);
 		set_destroy_with_parent (true);
 		set_modal (true);
 		set_deletable(true);
@@ -47,9 +52,10 @@ public class DonationWindow : Dialog {
 		icon = get_app_icon(16);
 
 		//vbox_main
-		var vbox_main = get_content_area();
-		vbox_main.margin = 6;
+		var vbox_main = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox_main.margin = 12;
 		vbox_main.spacing = 6;
+		add(vbox_main);
 		//vbox_main.homogeneous = false;
 
 		//get_action_area().visible = false;
@@ -62,8 +68,11 @@ public class DonationWindow : Dialog {
 		label.wrap = true;
 		label.wrap_mode = Pango.WrapMode.WORD;
 		label.max_width_chars = 50;
-		label.xalign = 0.0f;
-		label.margin_bottom = 6;
+		label.halign = Align.CENTER;
+		label.valign = Align.CENTER;
+		label.set_justify(Justification.CENTER);
+		//label.yalign = 0.5f;
+		label.margin_bottom = 48;
 
 		var scrolled = new Gtk.ScrolledWindow(null, null);
 		scrolled.hscrollbar_policy = PolicyType.NEVER;
@@ -135,7 +144,7 @@ public class DonationWindow : Dialog {
 		});
 
 		// close window
-		button = new Gtk.LinkButton.with_label("", _("Close Window"));
+		button = new Gtk.LinkButton.with_label("", _("Close"));
 		vbox_main.add(button);
 		button.clicked.connect(() => {
 			this.destroy();

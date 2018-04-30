@@ -351,7 +351,7 @@ public class ManagerBox : Gtk.Box {
 
 		var bbox2 = new Gtk.ButtonBox(Orientation.HORIZONTAL);
 		bbox2.hexpand = true;
-		bbox2.set_layout(Gtk.ButtonBoxStyle.END);
+		bbox2.set_layout(Gtk.ButtonBoxStyle.CENTER);
 		box.add(bbox2);
 
 		bbox_execute = bbox2;

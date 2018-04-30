@@ -53,6 +53,9 @@ public class TermBox : Gtk.Box {
 		//base(Gtk.Orientation.VERTICAL, 6); // issue with vala
 		Object(orientation: Gtk.Orientation.VERTICAL, spacing: 0); // work-around
 
+		margin = 0;
+		spacing = 0;
+		
 		window = _window;
 		
 		init_ui();
@@ -97,13 +100,25 @@ public class TermBox : Gtk.Box {
 
 		// donation link
 
+		var hbox = new Gtk.Box(Orientation.HORIZONTAL, 6);
+		this.add(hbox);
+
+		var bbox = new Gtk.ButtonBox(Orientation.HORIZONTAL);
+		bbox.set_layout(Gtk.ButtonBoxStyle.CENTER);
+		this.add(bbox);
+
 		var lbtn = new Gtk.LinkButton.with_label("", _("Buy me a coffee"));
 		lbtn.set_tooltip_text("Donate to: teejeetech@gmail.com");
-		this.add(lbtn);
+		bbox.add(lbtn);
 
-		lbtn.clicked.connect(() => {
-			xdg_open("https://www.paypal.com/cgi-bin/webscr?business=teejeetech@gmail.com&cmd=_xclick&currency_code=USD&amount=5&item_name=Aptik%20Donation", "");
+		lbtn.clicked.connect(() => { 
+			var win = new DonationWindow(window); 
+			win.show(); 
 		});
+		
+		/*lbtn.clicked.connect(() => {
+			xdg_open("https://www.paypal.com/cgi-bin/webscr?business=teejeetech@gmail.com&cmd=_xclick&currency_code=USD&amount=5&item_name=Aptik%20Donation", "");
+		});*/
 	}
 
 	public void start_shell(){

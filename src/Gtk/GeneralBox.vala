@@ -57,6 +57,8 @@ public class GeneralBox : Gtk.Box {
 		init_ui_location();
 
 		init_ui_mode();
+
+		add_links();
 		
 		show_all();
 	}
@@ -200,5 +202,42 @@ public class GeneralBox : Gtk.Box {
 		btn_backup.active = true;
 
 		btn_backup.grab_focus();
+	}
+
+	private void add_links(){
+
+		var expander = new Gtk.Label(""); 
+		expander.vexpand = true; 
+		vbox_main.add(expander);
+    
+		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6); 
+		//hbox.margin_bottom = 6; 
+		//hbox.margin_right = 6; 
+		vbox_main.add(hbox);
+    
+		// donate link 
+		var button = new Gtk.LinkButton.with_label("", _("Donate")); 
+		vbox_main.add(button);
+    
+		button.clicked.connect(() => {
+			var win = new DonationWindow(parent_window); 
+			win.show(); 
+		});
+
+		// user manual 
+		button = new Gtk.LinkButton.with_label("", _("User Manual")); 
+		vbox_main.add(button);
+
+		button.clicked.connect(() => { 
+			xdg_open("https://github.com/teejee2008/aptik-next/blob/master/MANUAL.md"); 
+		});
+
+		// about 
+		button = new Gtk.LinkButton.with_label("", _("About")); 
+		vbox_main.add(button);
+
+		button.clicked.connect(() => { 
+			parent_window.btn_show_about_window(); 
+		}); 
 	}
 }

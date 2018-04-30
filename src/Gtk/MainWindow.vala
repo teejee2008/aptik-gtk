@@ -63,7 +63,7 @@ public class MainWindow : Window {
 		
 		title = AppName + " v" + AppVersion;
 		window_position = WindowPosition.CENTER;
-		resizable = false;
+		resizable = true;
 		destroy.connect (Gtk.main_quit);
 		icon = get_app_icon(16);
 
@@ -108,25 +108,6 @@ public class MainWindow : Window {
 		init_ui_console();
 		
 		show_all();
-		
-		//actions ---------------------------------------------
-
-		//init_section_location();
-
-		//init_section_password();
-
-		//init_section_backup();
-
-		//init_section_header_links();
-		
-		//txt_basepath.text = App.basepath;
-
-		//termwin = new TerminalWindow.with_parent(this, false, true);
-		//termwin.start_shell();	
-	
-		//init_section_toolbar_bottom();
-
-		//init_section_status();
 	}
 
 	private void check_aptik_version(){
@@ -445,6 +426,8 @@ public class MainWindow : Window {
 	}
 
 	public void execute(string cmd){
+
+		string current_child = stack.visible_child_name;
 		
 		stack.visible_child_name = "console";
 
@@ -455,12 +438,68 @@ public class MainWindow : Window {
 		});
 
 		term.feed_command(cmd);
+
+		term.child_exited.connect(()=>{
+
+			if (App.mode == Mode.RESTORE){
+				
+				clear_items(current_child);
+
+				if (current_child == "packages"){
+
+					clear_items("fonts");
+					clear_items("icons");
+					clear_items("themes");
+				}
+			}
+		});
+	}
+
+	public void clear_items(string page_name){
+		
+		switch(page_name){
+		case "repos":
+			mgr_repo.items.clear();
+			break;
+		case "cache":
+			mgr_cache.items.clear();
+			break;
+		case "packages":
+			mgr_pkg.items.clear();
+			break;
+		case "icons":
+			mgr_icons.items.clear();
+			break;
+		case "themes":
+			mgr_themes.items.clear();
+			break;
+		case "fonts":
+			mgr_fonts.items.clear();
+			break;
+		case "users":
+			mgr_users.items.clear();
+			break;
+		case "groups":
+			mgr_groups.items.clear();
+			break;
+		case "dconf":
+			mgr_dconf.items.clear();
+			break;
+		case "cron":
+			mgr_cron.items.clear();
+			break;
+		case "home":
+			mgr_home.items.clear();
+			break;
+		case "mounts":
+			mgr_mounts.items.clear();
+			break;
+		}
 	}
 	
-	private void btn_show_about_window(){
+	public void btn_show_about_window(){
 		
-		var dialog = new AboutWindow();
-		dialog.set_transient_for (this);
+		var dialog = new AboutWindow(this);
 
 		dialog.authors = {
 			"Tony George:teejeetech@gmail.com"
@@ -491,7 +530,9 @@ public class MainWindow : Window {
 
 		dialog.program_name = AppName;
 		dialog.comments = _("Settings & Data Migration Utility for Linux");
-		dialog.copyright = "Copyright © 2012-2018 %s (%s)".printf(AppAuthor, AppAuthorEmail);
+		dialog.copyright = "Copyright © 2012-2018";
+		dialog.author_name = AppAuthor;
+		dialog.author_email = AppAuthorEmail;
 		dialog.version = AppVersion;
 		dialog.logo = get_app_icon(128); 
 
