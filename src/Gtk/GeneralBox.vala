@@ -64,12 +64,13 @@ public class GeneralBox : Gtk.Box {
 	private void init_ui_location() {
 		
 		// header
-		var label = new Gtk.Label("<b>" + _("Select Backup Path") + "</b>");
+		var label = new Gtk.Label(format_text(_("Select Backup Path"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
 		vbox_main.pack_start(label, false, true, 0);
 		
 		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
+		hbox.margin = 12;
 		vbox_main.pack_start(hbox, false, true, 0);
 
 		hbox.set_size_request(500,-1);
@@ -152,14 +153,15 @@ public class GeneralBox : Gtk.Box {
 	private void init_ui_mode() {
 		
 		// header
-		var label = new Gtk.Label("<b>" + _("Select Mode") + "</b>");
+		var label = new Gtk.Label(format_text(_("Select Mode"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
-		label.margin_top = 24;
-		label.margin_bottom = 24;
+		//label.margin_top = 24;
+		//label.margin_bottom = 24;
 		vbox_main.pack_start(label, false, true, 0);
 
 		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
+		hbox.margin = 12;
 		vbox_main.pack_start(hbox, false, true, 0);
 		hbox.set_size_request(500,-1);
 
@@ -194,6 +196,8 @@ public class GeneralBox : Gtk.Box {
 				mode_changed();
 			}
 		});
+
+		btn_backup.active = true;
 
 		btn_backup.grab_focus();
 	}

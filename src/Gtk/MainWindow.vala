@@ -42,9 +42,10 @@ public class MainWindow : Window {
 	private TermBox term;
 
 	private int window_width = 900;
-	private int window_height = 600;
+	private int window_height = 700;
 
 	private GeneralBox box_general;
+	private SettingsBox box_all;
 	private PackageManager mgr_pkg;
 	private RepoManager mgr_repo;
 	private PackageCacheManager mgr_cache;
@@ -72,9 +73,13 @@ public class MainWindow : Window {
 		vbox_main.set_size_request(window_width, window_height);
 		this.add(vbox_main);
 
+		check_aptik_version();
+
 		init_ui();
 
 		init_ui_general();
+
+		init_ui_all();
 
 		init_ui_repos();
 
@@ -124,6 +129,39 @@ public class MainWindow : Window {
 		//init_section_status();
 	}
 
+	private void check_aptik_version(){
+
+		if (!cmd_exists("aptik")){
+
+			string txt = _("Aptik Not Installed");
+			
+			string msg = "%s\n".printf(
+				_("Could not find console application. Please install the 'aptik' package.")
+			);
+
+			gtk_messagebox(txt, msg, this, true);
+			exit(1);
+		}
+		
+		string std_out, std_err;
+		exec_sync("aptik --version", out std_out, out std_err);
+		string aptik_version = std_out.strip();
+		
+		if (AppVersion != aptik_version){
+			
+			string txt = _("Version Mismatch");
+			
+			string msg = "%s\n\n%s (v%s)\n\n%s (v%s)\n".printf(
+				_("GUI version does not match console version. Please install same version of 'aptik' and 'aptik-gtk' packages."),
+				_("aptik-gtk"), AppVersion,
+				_("aptik"), aptik_version
+			);
+
+			gtk_messagebox(txt, msg, this, true);
+			exit(1);
+		}
+	}
+
 	private void init_ui(){
 
 		pane = new Gtk.Paned(Gtk.Orientation.HORIZONTAL);
@@ -153,6 +191,9 @@ public class MainWindow : Window {
 		log_debug("sidebar: %s".printf(stack.visible_child_name));
 
 		switch(stack.visible_child_name){
+		case "all":
+			box_all.init_ui_mode();
+			break;
 		case "repos":
 			if (mgr_repo.items.size == 0){
 				mgr_repo.init_ui_mode(App.mode);
@@ -243,6 +284,17 @@ public class MainWindow : Window {
 			mgr_home.items.clear();
 			mgr_mounts.items.clear();
 		});
+	}
+
+	private void init_ui_all(){
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.margin = 6;
+		
+		stack.add_titled(vbox, "all", _("All Items"));
+
+		box_all = new SettingsBox(this);
+		vbox.add(box_all);
 	}
 	
 	private void init_ui_repos(){

@@ -113,6 +113,8 @@ public class ManagerBox : Gtk.Box {
 
 		mode = _mode;
 
+		treeview_clear();
+
 		tmr_init = Timeout.add(100, init_ui_mode_delayed);
 	}
 
@@ -136,7 +138,7 @@ public class ManagerBox : Gtk.Box {
 	protected bool init_ui_mode_delayed() {
 
 		log_debug("ManagerBox.init_ui_mode_delayed()");
-
+		
 		switch (mode){
 		case Mode.BACKUP:
 			gtk_show(btn_backup);
@@ -596,6 +598,19 @@ public class ManagerBox : Gtk.Box {
 		treeview.columns_autosize();
 	}
 
+	protected virtual void treeview_clear() {
+
+		log_debug("ManagerBox.treeview_clear()");
+		
+		var store = new Gtk.ListStore(5, typeof(bool), typeof(bool), typeof(Item), typeof(Gdk.Pixbuf), typeof(string));
+	
+		model_filter = new TreeModelFilter(store, null);
+		model_filter.set_visible_func(filter_items_filter);
+		treeview.set_model(model_filter);
+		
+		treeview.columns_autosize();
+	}
+
 	protected virtual bool filter_items_filter(Gtk.TreeModel model, Gtk.TreeIter iter) {
 
 		Item item;
@@ -782,7 +797,7 @@ public class ManagerBox : Gtk.Box {
 		
 		log_debug("saved: %s".printf(exclude_list));
 
-		log_debug("txt: %s".printf(txt));
+		//log_debug("txt: %s".printf(txt));
 	}
 
 	public virtual string create_backup_path(string basepath){

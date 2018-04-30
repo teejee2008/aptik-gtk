@@ -33,43 +33,26 @@ using TeeJee.System;
 using TeeJee.Misc;
 using TeeJee.GtkHelper;
 
-public class SettingsWindow : Window {
+public class SettingsBox : Gtk.Box {
 
 	private Gtk.Box vbox_main;
 
-	private int def_width = 500;
-	private int def_height = 450;
-	private uint tmr_init = 0;
-	
-	private MainWindow main_window;
+	protected Button btn_restore;
+	protected Button btn_backup;
 
+	private MainWindow parent_window;
+	
 	// init -------------------------
 	
-	public SettingsWindow(MainWindow parent) {
+	public SettingsBox(MainWindow parent) {
 
-		main_window = parent;
+		parent_window = parent;
 		
-		set_transient_for(parent);
-		
-		set_modal(true);
-
-		this.title = _("Settings");
-
-		this.destroy.connect(()=>{
-			parent.present();
-		});
-		
-		init_window();
+		init_ui();
 	}
 
-	public void init_window () {
+	public void init_ui() {
 	
-		window_position = Gtk.WindowPosition.CENTER_ON_PARENT;
-		set_default_size (def_width, def_height);
-		icon = get_app_icon(16);
-		resizable = true;
-		deletable = true;
-		
 		vbox_main = new Gtk.Box (Orientation.VERTICAL, 6);
 		vbox_main.margin = 12;
 		//vbox_main.margin_right = 24;
@@ -84,20 +67,6 @@ public class SettingsWindow : Window {
 		init_actions();
 		
 		show_all();
-
-		tmr_init = Timeout.add(100, init_delayed);
-	}
-
-	private bool init_delayed() {
-		
-		/* any actions that need to run after window has been displayed */
-		
-		if (tmr_init > 0) {
-			Source.remove(tmr_init);
-			tmr_init = 0;
-		}
-
-		return false;
 	}
 
 	private void init_options(Gtk.Box box) {
@@ -105,14 +74,14 @@ public class SettingsWindow : Window {
 		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
 		box.add(vbox);
 		
-		var label = new Label("<b>" + _("Backup &amp; Restore") + "</b>");
+		var label = new Gtk.Label(format_text(_("Select Items"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
-		label.margin_bottom = 6;
+		//label.margin = 12;
 		vbox.add(label);
 
 		var vbox2 = new Gtk.Box(Orientation.VERTICAL, 3);
-		//vbox2.margin_left = 6;
+		vbox2.margin = 12;
 		vbox.add(vbox2);
 
 		add_options_for_items(vbox2);
@@ -120,7 +89,7 @@ public class SettingsWindow : Window {
 		// ---------------------
 		
 		var separator = new Gtk.Separator(Gtk.Orientation.VERTICAL);
-		separator.margin = 12;
+		separator.margin = 24;
 		//separator.margin_right = 24;
 		box.add(separator);
 
@@ -129,9 +98,19 @@ public class SettingsWindow : Window {
 		var vbox3 = new Gtk.Box(Orientation.VERTICAL, 6);
 		box.add(vbox3);
 
-		add_options_packages(vbox3);
+		label = new Gtk.Label(format_text(_("Settings"), true, false, true));
+		label.set_use_markup(true);
+		label.halign = Align.START;
+		//label.margin = 12;
+		vbox3.add(label);
 
-		add_options_home(vbox3);
+		var vbox4 = new Gtk.Box(Orientation.VERTICAL, 3);
+		vbox4.margin = 12;
+		vbox3.add(vbox4);
+
+		add_options_packages(vbox4);
+
+		add_options_home(vbox4);
 	}
 
 	private void add_options_for_items(Gtk.Box vbox){
@@ -268,11 +247,11 @@ public class SettingsWindow : Window {
 		var label = new Gtk.Label("<b>%s</b>".printf(Messages.TASK_PACKAGES));
 		label.set_use_markup(true);
 		label.halign = Align.START;
-		label.margin_bottom = 6;
+		//label.margin = 12;
 		vbox.add(label);
 
 		var vbox2 = new Gtk.Box(Orientation.VERTICAL, 3);
-		vbox2.margin_left = 6;
+		vbox2.margin = 12;
 		vbox.add(vbox2);
 
 		add_option_include_pkg_foreign(vbox2);
@@ -337,11 +316,11 @@ public class SettingsWindow : Window {
 		var label = new Gtk.Label("<b>%s</b>".printf(Messages.TASK_HOME));
 		label.set_use_markup(true);
 		label.halign = Align.START;
-		label.margin_bottom = 6;
+		//label.margin = 12;
 		vbox.add(label);
 
 		var vbox2 = new Gtk.Box(Orientation.VERTICAL, 3);
-		vbox2.margin_left = 6;
+		vbox2.margin = 12;
 		vbox.add(vbox2);
 
 		add_option_exclude_home_encrypted(vbox2);
@@ -397,14 +376,168 @@ public class SettingsWindow : Window {
 		bbox.hexpand = true;
 		hbox.add(bbox);
 
-		// btn_close
-		var button = new Gtk.Button.with_label(_("Ok"));
-		bbox.pack_start(button, true, true, 0);
+		//btn_backup
+		btn_backup = new Gtk.Button.with_label(_("Backup All Items"));
+		btn_backup.no_show_all = true;
+		btn_backup.set_size_request(150,-1);
+		bbox.add(btn_backup);
 
-		button.clicked.connect(() => {
-			this.close();
+		btn_backup.clicked.connect(btn_backup_clicked);
+
+		//btn_restore
+		btn_restore = new Gtk.Button.with_label(_("Restore All Items"));
+		btn_restore.no_show_all = true;
+		btn_restore.set_size_request(150,-1);
+		bbox.add(btn_restore);
+
+		btn_restore.clicked.connect(btn_restore_clicked);
+	}
+
+	public void init_ui_mode() {
+
+		Timeout.add(100, init_ui_mode_delayed);
+	}
+	
+	private bool init_ui_mode_delayed() {
+
+		log_debug("SettingsBox.init_ui_mode_delayed()");
+
+		switch (App.mode){
+		case Mode.BACKUP:
+			gtk_show(btn_backup);
+			gtk_hide(btn_restore);
+			break;
+			
+		case Mode.RESTORE:
+			gtk_hide(btn_backup);
+			gtk_show(btn_restore);
+			break;
+		}
+
+		return false;
+	}
+	
+	// events
+
+	private void btn_backup_clicked() {
+
+		log_debug("SettingsBox.btn_backup_clicked()");
+		
+		// check if no action required ------------------------------
+		
+		bool none_selected = !App.include_repos && !App.include_cache && !App.include_packages
+			&& !App.include_users && !App.include_groups && !App.include_home && !App.include_dconf && !App.include_cron
+			&& !App.include_mounts && !App.include_icons && !App.include_themes && !App.include_fonts;
+
+		if (none_selected) {
+			string title = _("No Items Selected");
+			string msg = _("Select items to backup");
+			gtk_messagebox(title, msg, parent_window, false);
+			return;
+		}
+
+		// save backup ---------------------
+
+		Timeout.add(100, ()=>{
+
+			string cmd = "pkexec aptik --backup-all --basepath '%s'".printf(App.basepath);
+
+			cmd += get_cmd_options();
+
+			parent_window.execute(cmd);
+			
+			return false;
 		});
 	}
 
-	// events
+	private string get_cmd_options(){
+
+		string cmd = "";
+
+		if (!App.include_repos){ cmd += " --skip-repos"; }
+
+		if (!App.include_cache){ cmd += " --skip-cache"; }
+
+		if (!App.include_packages){ cmd += " --skip-packages"; }
+
+		if (!App.include_users){ cmd += " --skip-users"; }
+
+		if (!App.include_groups){ cmd += " --skip-groups"; }
+
+		if (!App.include_home){ cmd += " --skip-home"; }
+
+		if (!App.include_mounts){ cmd += " --skip-mounts"; }
+
+		if (!App.include_dconf){ cmd += " --skip-dconf"; }
+
+		if (!App.include_cron){ cmd += " --skip-cron"; }
+
+		if (!App.include_fonts){ cmd += " --skip-fonts"; }
+
+		if (!App.include_icons){ cmd += " --skip-icons"; }
+
+		if (!App.include_themes){ cmd += " --skip-themes"; }
+
+		if (!App.include_themes){ cmd += " --skip-themes"; }
+
+		if (App.include_packages){
+			
+			if (App.exclude_pkg_icons){ cmd += " --exclude-pkg-icons"; }
+
+			if (App.exclude_pkg_themes){ cmd += " --exclude-pkg-themes"; }
+
+			if (App.exclude_pkg_fonts){ cmd += " --exclude-pkg-fonts"; }
+
+			if (App.include_pkg_foreign){ cmd += " --include-pkg-foreign"; }
+		}
+
+		if (App.include_home){
+
+			if (App.exclude_home_hidden){ cmd += " --exclude-home-hidden"; }
+		}
+
+		return cmd;
+	}
+
+	private void btn_restore_clicked() {
+
+		log_debug("SettingsBox.btn_restore_clicked()");
+		
+		// check if no action required ------------------------------
+		
+		bool none_selected = !App.include_repos && !App.include_cache && !App.include_packages
+			&& !App.include_users && !App.include_groups && !App.include_home && !App.include_dconf && !App.include_cron
+			&& !App.include_mounts && !App.include_icons && !App.include_themes && !App.include_fonts;
+		
+		if (none_selected) {
+			string title = _("No Items Selected");
+			string msg = _("All items already installed. No items selected for installation.");
+			gtk_messagebox(title, msg, parent_window, false);
+			return;
+		}
+
+		bool internet_needed = App.include_repos || App.include_packages;
+
+		if (internet_needed && !check_internet_connectivity()) {
+			string title = _("Error");
+			string msg = Messages.INTERNET_OFFLINE;
+			gtk_messagebox(title, msg, parent_window, false);
+			return;
+		}
+
+		// restore backup ---------------------
+
+		Timeout.add(100, ()=>{
+
+			string cmd = "pkexec aptik --restore-all --basepath '%s'".printf(App.basepath);
+
+			cmd += get_cmd_options();
+
+			parent_window.execute(cmd);
+			
+			return false;
+		});
+	}
+
+
 }
