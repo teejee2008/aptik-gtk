@@ -214,30 +214,51 @@ public class GeneralBox : Gtk.Box {
 		//hbox.margin_bottom = 6; 
 		//hbox.margin_right = 6; 
 		vbox_main.add(hbox);
-    
-		// donate link 
+
+		// donate link
+
+		var bbox = add_link_box();
+		
 		var button = new Gtk.LinkButton.with_label("", _("Donate")); 
-		vbox_main.add(button);
+		bbox.add(button);
     
 		button.clicked.connect(() => {
 			var win = new DonationWindow(parent_window); 
 			win.show(); 
 		});
+	
+		// user manual
 
-		// user manual 
+		bbox = add_link_box();
+		
 		button = new Gtk.LinkButton.with_label("", _("User Manual")); 
-		vbox_main.add(button);
+		bbox.add(button);
 
 		button.clicked.connect(() => { 
-			xdg_open("https://github.com/teejee2008/aptik-next/blob/master/MANUAL.md"); 
+			xdg_open("https://github.com/teejee2008/aptik/blob/master/MANUAL.md"); 
 		});
 
-		// about 
+		// about
+
+		bbox = add_link_box();
+		
 		button = new Gtk.LinkButton.with_label("", _("About")); 
-		vbox_main.add(button);
+		bbox.add(button);
 
 		button.clicked.connect(() => { 
 			parent_window.btn_show_about_window(); 
 		}); 
+	}
+
+	private Gtk.ButtonBox add_link_box(){
+
+		//var hbox = new Gtk.Box(Orientation.HORIZONTAL, 6);
+		//vbox_main.add(hbox);
+
+		var bbox = new Gtk.ButtonBox(Orientation.HORIZONTAL);
+		bbox.set_layout(Gtk.ButtonBoxStyle.CENTER);
+		vbox_main.add(bbox);
+
+		return bbox;
 	}
 }

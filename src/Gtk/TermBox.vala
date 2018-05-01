@@ -87,7 +87,7 @@ public class TermBox : Gtk.Box {
 		term.allow_bold = false;
 
 		term.scroll_on_keystroke = true;
-		term.scroll_on_output = true;
+		term.scroll_on_output = false;
 		term.scrollback_lines = 100000;
 
 		var fontdesc = Pango.FontDescription.from_string("liberation mono,droid sans mono,ubuntu mono,monospace regular 10");
@@ -108,7 +108,7 @@ public class TermBox : Gtk.Box {
 		this.add(bbox);
 
 		var lbtn = new Gtk.LinkButton.with_label("", _("Buy me a coffee"));
-		lbtn.set_tooltip_text("Donate to: teejeetech@gmail.com");
+		lbtn.set_tooltip_text("PayPal");
 		bbox.add(lbtn);
 
 		lbtn.clicked.connect(() => { 
@@ -116,9 +116,9 @@ public class TermBox : Gtk.Box {
 			win.show(); 
 		});
 		
-		/*lbtn.clicked.connect(() => {
-			xdg_open("https://www.paypal.com/cgi-bin/webscr?business=teejeetech@gmail.com&cmd=_xclick&currency_code=USD&amount=5&item_name=Aptik%20Donation", "");
-		});*/
+		//lbtn.clicked.connect(() => {
+		//	xdg_open("https://www.paypal.com/cgi-bin/webscr?business=teejeetech@gmail.com&cmd=_xclick&currency_code=USD&amount=5&item_name=Aptik%20Donation", "");
+		//});
 	}
 
 	public void start_shell(){
@@ -126,6 +126,7 @@ public class TermBox : Gtk.Box {
 		log_debug("TermBox: start_shell()");
 		
 		string[] argv = new string[1];
+		//argv[0] = get_cmd_path("pkexec");
 		argv[0] = get_cmd_path("bash");
 
 		if (!cmd_exists("bash")){
@@ -176,7 +177,7 @@ public class TermBox : Gtk.Box {
 
 		string cmd =
 """
-if [ "`id -u`" -eq 0 ]; then
+if [ `id -u` -eq 0 ]; then
   PS1='\[\e[31m\]\# \[\e[m\]'
 else
   PS1='\[\033[01;93m\]\$ \[\033[00m\]'

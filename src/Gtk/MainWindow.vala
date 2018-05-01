@@ -415,7 +415,7 @@ public class MainWindow : Window {
 		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
 		vbox.margin = 6;
 		
-		stack.add_titled(vbox, "console", _("Console"));
+		stack.add_titled(vbox, "console", _("Terminal"));
 
 		term = new TermBox(this);
 		term.expand = true;
@@ -430,6 +430,14 @@ public class MainWindow : Window {
 		string current_child = stack.visible_child_name;
 		
 		stack.visible_child_name = "console";
+		
+		if (term.has_running_process){
+			string txt = _("Terminal Busy");
+			string msg = _("A process is running in terminal. Please wait for it to complete.");
+			gtk_messagebox(txt, msg, this, true);
+			stack.visible_child_name = "console";
+			return;
+		}
 
 		sidebar.sensitive = false;
 		

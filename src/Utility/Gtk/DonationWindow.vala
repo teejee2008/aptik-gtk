@@ -121,18 +121,18 @@ public class DonationWindow : Gtk.Window {
 
 		// issue tracker
 		button = new Gtk.LinkButton.with_label("", _("Report Issues, Request Features, Ask Questions"));
-		button.set_tooltip_text("https://github.com/teejee2008/aptik-next/issues");
+		button.set_tooltip_text("https://github.com/teejee2008/aptik/issues");
 		vbox_main.add(button);
 		button.clicked.connect(() => {
-			xdg_open("https://github.com/teejee2008/aptik-next/issues", username);
+			xdg_open("https://github.com/teejee2008/aptik/issues", username);
 		});
 
 		// user manual
 		button = new Gtk.LinkButton.with_label("", _("User Manual"));
-		button.set_tooltip_text("https://github.com/teejee2008/aptik-next/blob/master/MANUAL.md");
+		button.set_tooltip_text("https://github.com/teejee2008/aptik/blob/master/MANUAL.md");
 		vbox_main.add(button);
 		button.clicked.connect(() => {
-			xdg_open("https://github.com/teejee2008/aptik-next/blob/master/MANUAL.md", username);
+			xdg_open("https://github.com/teejee2008/aptik/blob/master/MANUAL.md", username);
 		});
 
 		// medium
