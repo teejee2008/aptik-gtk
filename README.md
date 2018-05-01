@@ -7,7 +7,9 @@ Aptik is a tool for **migrating settings and data** from one Linux installation 
 
 ## Screenshots
 
+![](images/main_window.png)
 
+![](images/main_window_dark.png)
 
 
 
@@ -23,7 +25,7 @@ Aptik includes a few extra plugins for people who have contributed to the projec
 
 **PayPal** ~ If you find this application useful and wish to say thanks, you can buy me a coffee by making a one-time donation with Paypal. 
 
-[![](https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg)](https://www.paypal.com/cgi-bin/webscr?business=teejeetech@gmail.com&cmd=_xclick&currency_code=USD&amount=10&item_name=Polo%20Donation)  
+[![](https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg)](https://www.paypal.com/cgi-bin/webscr?business=teejeetech@gmail.com&cmd=_xclick&currency_code=USD&amount=10&item_name=Aptik%20Donation)  
 
 **Patreon** ~ You can also sign up as a sponsor on Patreon.com. As a patron you will get access to beta releases of new applications that I'm working on. You will also get news and updates about new features that are not published elsewhere.
 
