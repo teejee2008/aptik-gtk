@@ -776,14 +776,33 @@ public class ManagerBox : Gtk.Box {
 		// save backup ---------------------
 
 		Timeout.add(100, ()=>{
-			parent_window.execute("pkexec aptik --backup-%s --basepath '%s' --apply-selections".printf(item_type, App.basepath));
+
+			string cmd = "pkexec aptik --backup-%s --apply-selections".printf(item_type);
+			
+			string basepath = App.basepath;
+
+			if (App.redist){
+				basepath = path_combine(App.basepath, "distribution");
+				cmd += " --redist";
+			}
+
+			cmd += " --basepath '%s'".printf(escape_single_quote(basepath);
+			
+			parent_window.execute(cmd);
+			
 			return false;
 		});
 	}
 
 	public void save_selections(){
 
-		string backup_path = create_backup_path(App.basepath);
+		string basepath = App.basepath;
+
+		if (App.redist){
+			basepath = path_combine(App.basepath, "distribution");
+		}
+			
+		string backup_path = create_backup_path(basepath);
 		
 		string exclude_list = path_combine(backup_path, "selections.list");
 		
@@ -1055,7 +1074,20 @@ public class ManagerBox : Gtk.Box {
 		// restore backup ---------------------
 
 		Timeout.add(100, ()=>{
-			parent_window.execute("pkexec aptik --restore-%s --basepath '%s' --apply-selections".printf(item_type, App.basepath));
+
+			string cmd = "pkexec aptik --restore-%s --apply-selections".printf(item_type);
+			
+			string basepath = App.basepath;
+
+			//if (App.redist){
+			//	basepath = path_combine(App.basepath, "distribution");
+			//	cmd += " --redist";
+			//}
+
+			cmd += " --basepath '%s'".printf(escape_single_quote(basepath);
+			
+			parent_window.execute(cmd);
+			
 			return false;
 		});
 	}

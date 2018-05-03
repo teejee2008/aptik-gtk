@@ -440,7 +440,16 @@ public class SettingsBox : Gtk.Box {
 
 		Timeout.add(100, ()=>{
 
-			string cmd = "pkexec aptik --backup-all --basepath '%s'".printf(App.basepath);
+			string cmd = "pkexec aptik --backup-all";
+
+			string basepath = App.basepath;
+
+			if (App.redist){
+				basepath = path_combine(App.basepath, "distribution");
+				cmd += " --redist";
+			}
+
+			cmd += " --basepath '%s'".printf(escape_single_quote(basepath);
 
 			cmd += get_cmd_options();
 
@@ -529,7 +538,16 @@ public class SettingsBox : Gtk.Box {
 
 		Timeout.add(100, ()=>{
 
-			string cmd = "pkexec aptik --restore-all --basepath '%s'".printf(App.basepath);
+			string cmd = "pkexec aptik --restore-all";
+
+			string basepath = App.basepath;
+
+			if (App.redist){
+				basepath = path_combine(App.basepath, "distribution");
+				cmd += " --redist";
+			}
+
+			cmd += " --basepath '%s'".printf(escape_single_quote(basepath);
 
 			cmd += get_cmd_options();
 

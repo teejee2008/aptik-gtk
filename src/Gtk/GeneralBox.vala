@@ -34,10 +34,16 @@ using TeeJee.GtkHelper;
 public class GeneralBox : Gtk.Box {
 
 	protected Gtk.Box vbox_main;
+	protected Gtk.Box vbox_installer;
 
 	protected Gtk.Entry entry_location;
+	protected Gtk.Entry entry_appname;
+	protected Gtk.Entry entry_outname;
+	protected Gtk.Entry entry_outpath;
 
 	protected MainWindow parent_window;
+
+	protected Gtk.SizeGroup sg_buttons;
 
 	public signal void mode_changed();
 	
@@ -57,6 +63,8 @@ public class GeneralBox : Gtk.Box {
 		init_ui_location();
 
 		init_ui_mode();
+
+		init_ui_mode_installer();
 
 		add_links();
 		
@@ -158,50 +166,238 @@ public class GeneralBox : Gtk.Box {
 		var label = new Gtk.Label(format_text(_("Select Mode"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
-		//label.margin_top = 24;
-		//label.margin_bottom = 24;
-		vbox_main.pack_start(label, false, true, 0);
+		label.margin_bottom = 12;
+		vbox_main.add(label);
 
-		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
-		hbox.margin = 12;
-		vbox_main.pack_start(hbox, false, true, 0);
-		hbox.set_size_request(500,-1);
-
+		var sg = new Gtk.SizeGroup(SizeGroupMode.HORIZONTAL);
+		sg_buttons = sg;
+		
 		// backup --------------------------------
+
+		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		vbox_main.add(hbox);
 		
 		var button = new Gtk.ToggleButton.with_label(_("Backup"));
 		button.set_tooltip_text(_("Create backups for current system"));
-		hbox.pack_start (button, false, true, 0);
+		hbox.add(button);
+		sg.add_widget(button);
 		var btn_backup = button;
+		
+		label = new Gtk.Label(format_text(_("Create backups for current system"), false, true, false));
+		label.set_use_markup(true);
+		hbox.add(label);
 
 		// restore -------------------------
 
+		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		vbox_main.add(hbox);
+
 		button = new Gtk.ToggleButton.with_label(_("Restore"));
 		button.set_tooltip_text(_("Restore backups on new system"));
-		hbox.pack_start (button, false, true, 0);
+		hbox.add(button);
+		sg.add_widget(button);
 		var btn_restore = button;
+
+		label = new Gtk.Label(format_text(_("Restore backups on new system"), false, true, false));
+		label.set_use_markup(true);
+		hbox.add(label);
+
+		// installer -------------------------
+
+		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		vbox_main.add(hbox);
+		var hbox_installer = hbox;
+		
+		button = new Gtk.ToggleButton.with_label(_("Create Installer"));
+		button.set_tooltip_text(_("Create installer to share with friends"));
+		hbox.add(button);
+		sg.add_widget(button);
+		var btn_installer = button;
+
+		label = new Gtk.Label(format_text(_("Create installer to share with friends"), false, true, false));
+		label.set_use_markup(true);
+		hbox.add(label);
 
 		// events -----------------------
 		
 		btn_backup.clicked.connect(() => {
 			if (btn_backup.active){
 				App.mode = Mode.BACKUP;
+				App.redist = false;
 				btn_restore.active = false;
+				btn_installer.active = false;
+				gtk_hide(vbox_installer);
+				mode_changed();
+			}
+		});
+
+		btn_restore.clicked.connect(() => {
+			if (btn_restore.active){
+				App.mode = Mode.RESTORE;
+				App.redist = false;
+				btn_backup.active = false;
+				btn_installer.active = false;
+				gtk_hide(vbox_installer);
 				mode_changed();
 			}
 		});
 		
-		btn_restore.clicked.connect(() => {
-			if (btn_restore.active){
-				App.mode = Mode.RESTORE;
+		btn_installer.clicked.connect(() => {
+			if (btn_installer.active){
+				App.mode = Mode.BACKUP;
+				App.redist = true;
 				btn_backup.active = false;
+				btn_restore.active = false;
+				gtk_show(vbox_installer);
 				mode_changed();
 			}
 		});
 
 		btn_backup.active = true;
 
+		if (!cmd_exists("aptik-gen")){
+			gtk_hide(hbox_installer);
+		}
+
 		btn_backup.grab_focus();
+	}
+
+	private void init_ui_mode_installer() {
+
+		vbox_installer = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+		vbox_installer.margin_top = 12;
+		vbox_main.add(vbox_installer);
+
+		gtk_hide(vbox_installer);
+		
+		// header -------------------------
+		
+		var label = new Gtk.Label(format_text(_("Installer Options"), true, false, true));
+		label.set_use_markup(true);
+		label.halign = Align.START;
+		label.margin_bottom = 12;
+		vbox_installer.add(label);
+
+		var sg = new Gtk.SizeGroup(SizeGroupMode.HORIZONTAL);
+
+		// name --------------------
+		
+		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		vbox_installer.add(hbox);
+
+		label = new Gtk.Label(_("Title"));
+		label.xalign = 0.0f;
+		hbox.add(label);
+		sg.add_widget(label);
+		
+		var entry = new Gtk.Entry();
+		entry.hexpand = true;
+		hbox.add(entry);
+		entry_appname = entry;
+		
+		entry.text = _("My Tweaks v1.0");
+
+		// file name -----------------------
+
+		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		vbox_installer.add(hbox);
+
+		label = new Gtk.Label(_("File name"));
+		label.xalign = 0.0f;
+		hbox.add(label);
+		sg.add_widget(label);
+		
+		entry = new Gtk.Entry();
+		entry.hexpand = true;
+		hbox.add(entry);
+		entry_outname = entry;
+
+		string distname = App.distro.description;
+
+		if (!distname.contains(App.distro.release)){
+			distname += "_%s".printf(App.distro.release);
+		}
+
+		distname = distname.replace(" ", "_").down();
+		
+		string outname = "installer-%s-%s.run".printf(distname, App.distro.package_arch);
+ 
+		entry.text = outname;
+
+		// work dir -----------------------
+
+		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		vbox_installer.add(hbox);
+
+		label = new Gtk.Label(_("Working Dir"));
+		label.xalign = 0.0f;
+		hbox.add(label);
+		sg.add_widget(label);
+		
+		entry = new Gtk.Entry();
+		entry.hexpand = true;
+		hbox.add(entry);
+		entry.sensitive = false;
+		entry_outpath = entry;
+
+		entry.text = path_combine(App.basepath, "distribution");
+
+		var button = new Gtk.Button.with_label(_("Open"));
+		button.set_tooltip_text(_("Open folder"));
+		hbox.add(button);
+
+		button.clicked.connect(() => {
+
+			string dist_path = path_combine(App.basepath, "distribution");
+			dir_create(dist_path);
+			exo_open_folder(dist_path, false);
+		});
+
+		// prepare -------------------------
+
+		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		hbox.margin_top = 12;
+		vbox_installer.add(hbox);
+
+		label = new Gtk.Label(format_text(_("Create backups and click 'Generate Installer' to finish"), false, true, false));
+		label.set_use_markup(true);
+		hbox.add(label);
+
+		// action -------------------------
+
+		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		hbox.margin_top = 12;
+		vbox_installer.add(hbox);
+
+		var btn_generate = new Gtk.ToggleButton.with_label(_("Generate Installer"));
+		hbox.add(btn_generate);
+		sg_buttons.add_widget(btn_generate);
+
+		label = new Gtk.Label(format_text(_("Generate installer from backup files"), false, true, false));
+		label.set_use_markup(true);
+		hbox.add(label);
+
+		btn_generate.clicked.connect(()=>{
+			
+			Timeout.add(100, ()=>{
+				
+				string dist_path = path_combine(App.basepath, "distribution");
+
+				string cmd = "pkexec aptik-gen --pack";
+
+				cmd += " --appname '%s'".printf(escape_single_quote(entry_appname.text));
+
+				cmd += " --outname '%s'".printf(escape_single_quote(entry_outname.text));
+
+				cmd += " --outpath '%s'".printf(escape_single_quote(entry_outpath.text));
+
+				cmd += " --basepath '%s'".printf(escape_single_quote(dist_path));
+				
+				parent_window.execute(cmd);
+				
+				return false;
+			});
+		});
 	}
 
 	private void add_links(){
@@ -229,7 +425,7 @@ public class GeneralBox : Gtk.Box {
 	
 		// user manual
 
-		bbox = add_link_box();
+		//bbox = add_link_box();
 		
 		button = new Gtk.LinkButton.with_label("", _("User Manual")); 
 		bbox.add(button);
@@ -240,7 +436,7 @@ public class GeneralBox : Gtk.Box {
 
 		// about
 
-		bbox = add_link_box();
+		//bbox = add_link_box();
 		
 		button = new Gtk.LinkButton.with_label("", _("About")); 
 		bbox.add(button);

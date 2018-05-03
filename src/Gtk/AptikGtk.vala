@@ -49,6 +49,7 @@ public AptikGtk App;
 
 public class AptikGtk : GLib.Object {
 
+	public LinuxDistro distro = null;
 	public string basepath = "";
 
 	public Mode mode = Mode.BACKUP;
@@ -75,6 +76,8 @@ public class AptikGtk : GLib.Object {
 
 	public bool exclude_home_encrypted = true;
 	public bool exclude_home_hidden = false;
+
+	public bool redist = false;
 
 	public MainWindow main_window;
 
@@ -106,6 +109,11 @@ public class AptikGtk : GLib.Object {
 		//App.exit_app();
 
 		return 0;
+	}
+
+	public AptikGtk(){
+		
+		distro = new LinuxDistro();
 	}
 
 	private static void set_locale() {
@@ -159,6 +167,19 @@ public class AptikGtk : GLib.Object {
 		return msg;
 	}
 
+	public void copy_deb_file(string src_file){
+		
+		string backup_debs = path_combine(basepath, "debs/files");
+		dir_create(backup_debs);
+		chmod(backup_debs, "a+rwx");
+		
+		string file_name = file_basename(src_file);
+		string dest_file = path_combine(backup_debs, file_name);
+		file_copy(src_file, dest_file);
+		
+		chmod(dest_file, "a+rw");
+	}
+	
 	// settings ---------------------------------
 
 	public void save_settings(){

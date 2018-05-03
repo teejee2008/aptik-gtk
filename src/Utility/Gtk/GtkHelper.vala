@@ -1089,7 +1089,7 @@ namespace TeeJee.GtkHelper{
 		string msg = "<span%s%s%s>%s</span>".printf(
 			(bold ? " weight=\"bold\"" : ""),
 			(italic ? " style=\"italic\"" : ""),
-			(large ? " size=\"x-large\"" : ""),
+			(large ? " size=\"large\"" : ""),
 			escape_html(text));
 			
 		return msg;

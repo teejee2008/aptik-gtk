@@ -58,6 +58,10 @@ public class MainWindow : Window {
 	private MountManager mgr_mounts;
 	private UserManager mgr_users;
 	private GroupManager mgr_groups;
+
+	private const Gtk.TargetEntry[] targets = {
+		{ "text/uri-list", 0, 0}
+	};
 	
 	public MainWindow() {
 		
@@ -106,9 +110,39 @@ public class MainWindow : Window {
 		init_ui_fonts();
 
 		init_ui_console();
+
+		attach_drag_drop_handlers();
 		
 		show_all();
 	}
+
+	private void attach_drag_drop_handlers(){
+		Gtk.drag_dest_set (this,Gtk.DestDefaults.ALL, targets, Gdk.DragAction.COPY);
+		drag_data_received.connect(on_drag_data_received);
+	}
+
+	private void on_drag_data_received (Gdk.DragContext drag_context, int x, int y, Gtk.SelectionData data, uint info, uint time) {
+
+		int count = 0;
+
+        foreach(string uri in data.get_uris()){
+			
+			string file = uri.replace("file://","").replace("file:/","");
+			file = Uri.unescape_string (file);
+
+			if (file.has_suffix(".deb")){
+				App.copy_deb_file(file);
+				count++;
+			}
+		}
+
+		if (count > 0){
+			string msg = _("DEB files were copied to backup location.");
+			gtk_messagebox(_("Files Copied"),msg,this,false);
+		}
+
+        Gtk.drag_finish (drag_context, true, false, time);
+    }
 
 	private void check_aptik_version(){
 
