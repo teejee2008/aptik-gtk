@@ -786,7 +786,7 @@ public class ManagerBox : Gtk.Box {
 				cmd += " --redist";
 			}
 
-			cmd += " --basepath '%s'".printf(escape_single_quote(basepath);
+			cmd += " --basepath '%s'".printf(escape_single_quote(basepath));
 			
 			parent_window.execute(cmd);
 			
@@ -1084,7 +1084,7 @@ public class ManagerBox : Gtk.Box {
 			//	cmd += " --redist";
 			//}
 
-			cmd += " --basepath '%s'".printf(escape_single_quote(basepath);
+			cmd += " --basepath '%s'".printf(escape_single_quote(basepath));
 			
 			parent_window.execute(cmd);
 			

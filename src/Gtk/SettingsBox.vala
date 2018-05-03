@@ -449,7 +449,7 @@ public class SettingsBox : Gtk.Box {
 				cmd += " --redist";
 			}
 
-			cmd += " --basepath '%s'".printf(escape_single_quote(basepath);
+			cmd += " --basepath '%s'".printf(escape_single_quote(basepath));
 
 			cmd += get_cmd_options();
 
@@ -547,7 +547,7 @@ public class SettingsBox : Gtk.Box {
 				cmd += " --redist";
 			}
 
-			cmd += " --basepath '%s'".printf(escape_single_quote(basepath);
+			cmd += " --basepath '%s'".printf(escape_single_quote(basepath));
 
 			cmd += get_cmd_options();
 
