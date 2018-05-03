@@ -1,3 +1,12 @@
+aptik (18.5.1) xenial; urgency=medium
+
+  * Copy deb files to backup location when drag-dropped on window
+
+  * UI improvements
+
+ -- Tony George <tony.george.kol@gmail.com>  Thu, 03 May 2018 10:00:00 +0530
+
+
 aptik-gtk (18.5) xenial; urgency=medium
 
   * Initial Release
