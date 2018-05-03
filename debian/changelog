@@ -1,4 +1,4 @@
-aptik (18.5.1) xenial; urgency=medium
+aptik-gtk (18.5.1) xenial; urgency=medium
 
   * Copy deb files to backup location when drag-dropped on window
 
