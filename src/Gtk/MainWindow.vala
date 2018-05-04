@@ -298,6 +298,10 @@ public class MainWindow : Window {
 			mgr_cron.items.clear();
 			mgr_home.items.clear();
 			mgr_mounts.items.clear();
+
+			mgr_cache.sensitive = !App.redist;
+			mgr_users.sensitive = !App.redist;
+			mgr_groups.sensitive = !App.redist;
 		});
 	}
 

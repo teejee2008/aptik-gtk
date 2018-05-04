@@ -59,7 +59,7 @@ public class ManagerBox : Gtk.Box {
 	protected Button btn_select_reset;
 
 	protected Gtk.Overlay overlay; 
-	protected Gtk.Spinner spinner;
+	protected Gtk.Box vbox_overlay;
 
 	protected Mode mode = Mode.BACKUP;
 
@@ -119,10 +119,21 @@ public class ManagerBox : Gtk.Box {
 	}
 
 	public void start_spinner(){
-		
-		spinner = new Gtk.Spinner();
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.halign = Align.CENTER;
+		vbox.valign = Align.CENTER;
+		vbox_overlay = vbox;
+
+		var spinner = new Gtk.Spinner();
+		spinner.set_size_request(128,128);
 		spinner.active = true;
-		overlay.add_overlay(spinner);
+
+		vbox.add(spinner);
+		
+		overlay.add_overlay(vbox);
+
+		vbox_main.sensitive = false;
 		
 		show_all();
 		gtk_do_events();
@@ -130,7 +141,9 @@ public class ManagerBox : Gtk.Box {
 
 	public void stop_spinner(){
 
-		overlay.remove(spinner);
+		overlay.remove(vbox_overlay);
+
+		vbox_main.sensitive = true;
 
 		gtk_do_events();
 	}
