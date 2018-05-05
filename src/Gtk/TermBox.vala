@@ -39,6 +39,10 @@ public class TermBox : Gtk.Box {
 	private Pid child_pid;
 	private bool cancelled = false;
 	private bool is_running = false;
+
+	private bool as_admin = false;
+	private bool bash_initialized = false;
+	
 	private Gtk.Window window;
 
 	public const int DEF_FONT_SIZE = 11;
@@ -121,18 +125,26 @@ public class TermBox : Gtk.Box {
 		//});
 	}
 
-	public void start_shell(){
+	public void start_shell(bool _as_admin){
 
 		log_debug("TermBox: start_shell()");
+
+		as_admin = _as_admin;
 		
-		string[] argv = new string[1];
-		//argv[0] = get_cmd_path("pkexec");
-		argv[0] = get_cmd_path("bash");
+		string[] argv;
 
-		if (!cmd_exists("bash")){
-			argv[0] = get_cmd_path("sh");
+		string shell_path = cmd_exists("bash") ? get_cmd_path("bash") : get_cmd_path("sh");
+
+		if (as_admin){
+			argv = new string[2];
+			argv[0] = get_cmd_path("pkexec");
+			argv[1] = shell_path;
 		}
-
+		else{
+			argv = new string[1];
+			argv[0] = shell_path;
+		}
+		
 		string[] env = Environ.get();
 		
 		try{
@@ -149,6 +161,8 @@ public class TermBox : Gtk.Box {
 				out child_pid,
 				null
 			);
+
+			bash_initialized = false;
 
 			init_bash();
 
@@ -175,9 +189,19 @@ public class TermBox : Gtk.Box {
 
 	public void init_bash(){
 
-		string cmd = """if [ `id -u` -eq 0 ]; then  PS1='\[\e[31m\]\# \[\e[m\]'; else  PS1='\[\033[01;93m\]\$ \[\033[00m\]'; fi""";
+		if (bash_initialized){ return; }
+
+		//string cmd = """PS1='\[\033[01;93m\]\$ \[\033[00m\]'""";
+
+		string cmd = """PS1='\[\033[01;32m\]\t \[\033[01;93m\]\$ \[\033[00m\]'""";
+
+		//if (as_admin){
+			//cmd = cmd.replace("""\$""", """\#""");
+		//}
 
 		feed_command(cmd);
+
+		bash_initialized = true;
 	}
 
 	public void exit_shell(){
@@ -187,7 +211,7 @@ public class TermBox : Gtk.Box {
 
 	public void restart_shell(){
 		exit_shell();
-		start_shell();
+		start_shell(as_admin);
 	}
 
 	public void terminate_child(){
@@ -206,7 +230,7 @@ public class TermBox : Gtk.Box {
 
 		string status_file = "/tmp/aptik-last-status";
 		
-		feed_command("echo $? > '%s'".printf(status_file), true, false);
+		feed_command("echo $? > '%s'".printf(status_file));
 
 		sleep(100);
 		
@@ -223,8 +247,8 @@ public class TermBox : Gtk.Box {
 		return child_pid;
 	}
 
-	public void feed_command(string command, bool newline = true, bool signal_child_exit = true){
-
+	public void feed_command(string command, bool newline = true, bool signal_child_exit = false){
+		
 		string cmd = command;
 
 		if (newline){
@@ -253,7 +277,7 @@ public class TermBox : Gtk.Box {
 		log_debug("TermBox: refresh()");
 		
 		if (this.visible && !is_running){
-			start_shell();
+			start_shell(as_admin);
 		}
 	}
 

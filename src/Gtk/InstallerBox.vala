@@ -182,7 +182,9 @@ public class InstallerBox : Gtk.Box {
 			
 			Timeout.add(100, ()=>{
 				
-				string dist_path = path_combine(App.basepath, "distribution");
+				string inst_path = path_combine(App.basepath, "installer");
+			
+				string files_path = path_combine(inst_path, "files");
 
 				string cmd = "pkexec aptik-gen --pack";
 
@@ -192,7 +194,7 @@ public class InstallerBox : Gtk.Box {
 
 				cmd += " --outpath '%s'".printf(escape_single_quote(entry_outpath.text));
 
-				cmd += " --basepath '%s'".printf(escape_single_quote(dist_path));
+				cmd += " --basepath '%s'".printf(escape_single_quote(files_path));
 				
 				window.execute(cmd);
 				

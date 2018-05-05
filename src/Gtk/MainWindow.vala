@@ -139,6 +139,11 @@ public class MainWindow : Window {
 		//on_guimode_changed();
 		
 		show_all();
+
+		Timeout.add(100, ()=>{
+			term.start_shell(true);
+			return false;
+		});
 	}
 
 	private void attach_drag_drop_handlers(){
@@ -378,7 +383,6 @@ public class MainWindow : Window {
 
 		term = new TermBox(this);
 		term.expand = true;
-		term.start_shell();
 	}
 
 	private void on_mode_changed(){
@@ -633,6 +637,8 @@ public class MainWindow : Window {
 	
 	public void execute(string cmd, bool _switch_to_terminal = true){
 
+		term.init_bash();
+
 		current_child = stack.visible_child_name;
 
 		switch_to_terminal = _switch_to_terminal;
@@ -658,7 +664,7 @@ public class MainWindow : Window {
 			sidebar.sensitive = true;
 		});
 
-		term.feed_command(cmd);
+		term.feed_command(cmd, true, true);
 
 		term.child_exited.connect(on_term_child_exit);
 	}

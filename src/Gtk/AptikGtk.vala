@@ -210,6 +210,10 @@ public class AptikGtk : GLib.Object {
 
 		save_param(ConfigParam.EXC_HOME_ENC, exclude_home_encrypted.to_string());
 		save_param(ConfigParam.EXC_HOME_HIDDEN, exclude_home_hidden.to_string());
+
+		save_param(ConfigParam.MODE, ((int)mode).to_string());
+		save_param(ConfigParam.GUIMODE, ((int)guimode).to_string());
+		save_param(ConfigParam.REDIST, redist.to_string());
 	}
 
 	public void save_param(ConfigParam param, string param_value){
@@ -246,6 +250,10 @@ public class AptikGtk : GLib.Object {
 
 		exclude_home_encrypted = load_param_bool(ConfigParam.EXC_HOME_ENC, true);
 		exclude_home_hidden = load_param_bool(ConfigParam.EXC_HOME_HIDDEN, false);
+
+		mode    = (Mode) load_param_int (ConfigParam.MODE,    Mode.BACKUP);
+		guimode = (GUIMode) load_param_int (ConfigParam.GUIMODE, GUIMode.EASY);
+		redist  = load_param_bool(ConfigParam.REDIST, false);
 	}
 
 	public string load_param(ConfigParam param, string default_value){
@@ -267,6 +275,13 @@ public class AptikGtk : GLib.Object {
 		string txt = load_param(param, default_value.to_string());
 
 		return bool.parse(txt);
+	}
+
+	public int load_param_int(ConfigParam param, int default_value){
+
+		string txt = load_param(param, default_value.to_string());
+
+		return int.parse(txt);
 	}
 }
 
@@ -291,6 +306,9 @@ public enum ConfigParam {
 	EXC_PKG_FONTS,
 	EXC_PKG_FOREIGN,
 	EXC_HOME_ENC,
-	EXC_HOME_HIDDEN
+	EXC_HOME_HIDDEN,
+	MODE,
+	GUIMODE,
+	REDIST
 }
 

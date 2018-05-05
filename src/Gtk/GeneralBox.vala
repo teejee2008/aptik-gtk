@@ -55,7 +55,7 @@ public class GeneralBox : Gtk.Box {
 		window = parent;
 
 		vbox_main = new Gtk.Box(Orientation.VERTICAL, 12);
-		vbox_main.margin = 6;
+		vbox_main.margin = 12;
 		this.add(vbox_main);
 
 		init_ui();
@@ -87,7 +87,7 @@ public class GeneralBox : Gtk.Box {
 		var label = new Gtk.Label(format_text(_("Select Backup Path"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
-		label.margin_top = 12;
+		//label.margin_top = 12;
 		//label.margin_bottom = 12;
 		vbox.pack_start(label, false, true, 0);
 
@@ -136,8 +136,6 @@ public class GeneralBox : Gtk.Box {
 				exo_open_folder(App.basepath, false);
 			}
 		});
-
-		button.grab_focus();
 	}
 
 	private void backup_location_browse(){
@@ -248,6 +246,9 @@ public class GeneralBox : Gtk.Box {
 				App.guimode = GUIMode.EASY;
 				window.guimode_changed();
 			}
+			else if (!btn_easy.active && !btn_advanced.active && !btn_expert.active){
+				btn_easy.active = true;
+			}
 		});
 
 		btn_advanced.clicked.connect(() => {
@@ -257,6 +258,9 @@ public class GeneralBox : Gtk.Box {
 				App.guimode = GUIMode.ADVANCED;
 				window.guimode_changed();
 			}
+			else if (!btn_easy.active && !btn_advanced.active && !btn_expert.active){
+				btn_advanced.active = true;
+			}
 		});
 		
 		btn_expert.clicked.connect(() => {
@@ -265,6 +269,9 @@ public class GeneralBox : Gtk.Box {
 				btn_advanced.active = false;
 				App.guimode = GUIMode.EXPERT;
 				window.guimode_changed();
+			}
+			else if (!btn_easy.active && !btn_advanced.active && !btn_expert.active){
+				btn_expert.active = true;
 			}
 		});
 
@@ -292,9 +299,19 @@ public class GeneralBox : Gtk.Box {
 			}
 		});
 
-		btn_easy.active = true;
-		
-		btn_easy.grab_focus();
+		// set initial state ---------------------
+
+		switch (App.guimode){
+		case GUIMode.EASY:
+			btn_easy.active = true;
+			break;
+		case GUIMode.ADVANCED:
+			btn_advanced.active = true;
+			break;
+		case GUIMode.EXPERT:
+			btn_expert.active = true;
+			break;
+		}
 	}
 
 	private void init_ui_mode() {
@@ -379,10 +396,6 @@ public class GeneralBox : Gtk.Box {
 		btn_restore.active = (App.mode == Mode.RESTORE);
 
 		btn_installer.active = (App.mode == Mode.BACKUP) && App.redist;
-
-		// focus ----------------------------------
-		
-		btn_backup.grab_focus();
 	}
 
 	public void btn_backup_clicked(){
