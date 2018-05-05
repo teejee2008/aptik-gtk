@@ -35,21 +35,24 @@ public class GeneralBox : Gtk.Box {
 
 	protected Gtk.Box vbox_main;
 	protected Gtk.Box vbox_installer;
+	protected Gtk.Box hbox_installer_mode;
+
+	protected Gtk.ToggleButton btn_backup;
+	protected Gtk.ToggleButton btn_restore;
+	protected Gtk.ToggleButton btn_installer;
 
 	protected Gtk.Entry entry_location;
 	protected Gtk.Entry entry_appname;
 	protected Gtk.Entry entry_outname;
 	protected Gtk.Entry entry_outpath;
 
-	protected MainWindow parent_window;
+	protected MainWindow window;
 
 	protected Gtk.SizeGroup sg_buttons;
 
-	public signal void mode_changed();
-	
 	public GeneralBox(MainWindow parent) {
 
-		parent_window = parent;
+		window = parent;
 
 		vbox_main = new Gtk.Box(Orientation.VERTICAL, 12);
 		vbox_main.margin = 6;
@@ -78,18 +81,23 @@ public class GeneralBox : Gtk.Box {
 	private void init_ui_location() {
 
 		var vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
-		vbox.margin_top = 12;
 		vbox_main.add(vbox);
 		
 		// header
 		var label = new Gtk.Label(format_text(_("Select Backup Path"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
+		label.margin_top = 12;
+		//label.margin_bottom = 12;
 		vbox.pack_start(label, false, true, 0);
+
+		var vbox2 = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+		vbox2.margin = 12;
+		vbox.add(vbox2);
+		vbox = vbox2;
 		
 		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
-		hbox.margin = 12;
-		vbox.pack_start(hbox, false, true, 0);
+		vbox.add(hbox);
 
 		hbox.set_size_request(500,-1);
 
@@ -137,7 +145,7 @@ public class GeneralBox : Gtk.Box {
 		//chooser
 		var chooser = new Gtk.FileChooserDialog(
 			"Select Path",
-			parent_window,
+			window,
 			FileChooserAction.SELECT_FOLDER,
 			"_Cancel",
 			Gtk.ResponseType.CANCEL,
@@ -163,7 +171,7 @@ public class GeneralBox : Gtk.Box {
 		else {
 			string title = _("Backup Location Not Found");
 			string msg = _("Select a valid path for backup location");
-			gtk_messagebox(title, msg, parent_window, false);
+			gtk_messagebox(title, msg, window, false);
 			return false;
 		}
 	}
@@ -171,16 +179,21 @@ public class GeneralBox : Gtk.Box {
 	private void init_ui_mode_gui_mode() {
 
 		var vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
-		vbox.margin_top = 12;
 		vbox_main.add(vbox);
 		
 		// header
-		var label = new Gtk.Label(format_text(_("Select UI Layout"), true, false, true));
+		var label = new Gtk.Label(format_text(_("Select UI Mode"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
-		label.margin_bottom = 12;
+		label.margin_top = 12;
+		//label.margin_bottom = 12;
 		vbox.add(label);
 
+		var vbox2 = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+		vbox2.margin = 12;
+		vbox.add(vbox2);
+		vbox = vbox2;
+		
 		// backup --------------------------------
 
 		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
@@ -232,7 +245,8 @@ public class GeneralBox : Gtk.Box {
 			if (btn_easy.active){
 				btn_advanced.active = false;
 				btn_expert.active = false;
-				mode_changed();
+				App.guimode = GUIMode.EASY;
+				window.guimode_changed();
 			}
 		});
 
@@ -240,7 +254,8 @@ public class GeneralBox : Gtk.Box {
 			if (btn_advanced.active){
 				btn_easy.active = false;
 				btn_expert.active = false;
-				mode_changed();
+				App.guimode = GUIMode.ADVANCED;
+				window.guimode_changed();
 			}
 		});
 		
@@ -248,7 +263,32 @@ public class GeneralBox : Gtk.Box {
 			if (btn_expert.active){
 				btn_easy.active = false;
 				btn_advanced.active = false;
-				mode_changed();
+				App.guimode = GUIMode.EXPERT;
+				window.guimode_changed();
+			}
+		});
+
+		window.guimode_changed.connect(()=>{
+
+			if (cmd_exists("aptik-gen")){
+				gtk_show(hbox_installer_mode);
+			}
+			else{
+				gtk_hide(hbox_installer_mode);
+			}
+
+			switch(App.guimode){
+				
+			case GUIMode.EASY:
+			
+				hbox_installer_mode.sensitive = false;
+				break;
+				
+			case GUIMode.ADVANCED:
+			case GUIMode.EXPERT:
+			
+				hbox_installer_mode.sensitive = true;
+				break;
 			}
 		});
 
@@ -260,16 +300,21 @@ public class GeneralBox : Gtk.Box {
 	private void init_ui_mode() {
 
 		var vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
-		vbox.margin_top = 12;
 		vbox_main.add(vbox);
 		
 		// header
-		var label = new Gtk.Label(format_text(_("Select Mode"), true, false, true));
+		var label = new Gtk.Label(format_text(_("Select Backup Mode"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
-		label.margin_bottom = 12;
+		label.margin_top = 12;
+		//label.margin_bottom = 12;
 		vbox.add(label);
 
+		var vbox2 = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+		vbox2.margin = 12;
+		vbox.add(vbox2);
+		vbox = vbox2;
+		
 		// backup --------------------------------
 
 		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
@@ -280,7 +325,7 @@ public class GeneralBox : Gtk.Box {
 		hbox.add(button);
 		
 		sg_buttons.add_widget(button);
-		var btn_backup = button;
+		btn_backup = button;
 		
 		label = new Gtk.Label(format_text(_("Create backups for current system"), false, true, false));
 		label.set_use_markup(true);
@@ -296,7 +341,7 @@ public class GeneralBox : Gtk.Box {
 		hbox.add(button);
 		
 		sg_buttons.add_widget(button);
-		var btn_restore = button;
+		btn_restore = button;
 
 		label = new Gtk.Label(format_text(_("Restore backups on new system"), false, true, false));
 		label.set_use_markup(true);
@@ -306,14 +351,14 @@ public class GeneralBox : Gtk.Box {
 
 		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
 		vbox.add(hbox);
-		var hbox_installer = hbox;
+		hbox_installer_mode = hbox;
 		
 		button = new Gtk.ToggleButton.with_label(_("Create Installer"));
 		button.set_tooltip_text(_("Create installer to share with friends"));
 		hbox.add(button);
 		
 		sg_buttons.add_widget(button);
-		var btn_installer = button;
+		btn_installer = button;
 
 		label = new Gtk.Label(format_text(_("Create installer to share with friends"), false, true, false));
 		label.set_use_markup(true);
@@ -321,46 +366,80 @@ public class GeneralBox : Gtk.Box {
 
 		// events -----------------------
 		
-		btn_backup.clicked.connect(() => {
-			if (btn_backup.active){
-				App.mode = Mode.BACKUP;
-				App.redist = false;
-				btn_restore.active = false;
-				btn_installer.active = false;
-				gtk_hide(vbox_installer);
-				mode_changed();
-			}
-		});
+		btn_backup.clicked.connect(btn_backup_clicked);
 
-		btn_restore.clicked.connect(() => {
-			if (btn_restore.active){
-				App.mode = Mode.RESTORE;
-				App.redist = false;
-				btn_backup.active = false;
-				btn_installer.active = false;
-				gtk_hide(vbox_installer);
-				mode_changed();
-			}
-		});
+		btn_restore.clicked.connect(btn_restore_clicked);
 		
-		btn_installer.clicked.connect(() => {
-			if (btn_installer.active){
-				App.mode = Mode.BACKUP;
-				App.redist = true;
-				btn_backup.active = false;
-				btn_restore.active = false;
-				gtk_show(vbox_installer);
-				mode_changed();
-			}
-		});
+		btn_installer.clicked.connect(btn_installer_clicked);
+
+		// set initial state ---------------------
+		
+		btn_backup.active = (App.mode == Mode.BACKUP) && !App.redist;
+		
+		btn_restore.active = (App.mode == Mode.RESTORE);
+
+		btn_installer.active = (App.mode == Mode.BACKUP) && App.redist;
+
+		// focus ----------------------------------
+		
+		btn_backup.grab_focus();
+	}
+
+	public void btn_backup_clicked(){
+
+		if (!btn_backup.active){ return; }
+		
+		log_debug("GeneralBox: btn_backup_clicked()");
+
+		App.mode = Mode.BACKUP;
+		App.redist = false;
 
 		btn_backup.active = true;
+		
+		btn_restore.active = false;
 
-		if (!cmd_exists("aptik-gen")){
-			gtk_hide(hbox_installer);
-		}
+		btn_installer.active = false;
 
-		btn_backup.grab_focus();
+		window.mode_changed();
+		window.guimode_changed();
+	}
+
+	public void btn_restore_clicked(){
+
+		if (!btn_restore.active){ return; }
+		
+		log_debug("GeneralBox: btn_restore_clicked()");
+
+		App.mode = Mode.RESTORE;
+		App.redist = false;
+
+		btn_backup.active = false;
+		
+		btn_restore.active = true;
+
+		btn_installer.active = false;
+
+		window.mode_changed();
+		window.guimode_changed();
+	}
+
+	public void btn_installer_clicked(){
+
+		if (!btn_installer.active){ return; }
+		
+		log_debug("GeneralBox: btn_installer_clicked()");
+		
+		App.mode = Mode.BACKUP;
+		App.redist = true;
+
+		btn_backup.active = false;
+		
+		btn_restore.active = false;
+
+		btn_installer.active = true;
+
+		window.mode_changed();
+		window.guimode_changed();
 	}
 
 	private void init_ui_mode_installer() {
@@ -494,7 +573,7 @@ public class GeneralBox : Gtk.Box {
 
 				cmd += " --basepath '%s'".printf(escape_single_quote(dist_path));
 				
-				parent_window.execute(cmd);
+				window.execute(cmd);
 				
 				return false;
 			});
@@ -520,7 +599,7 @@ public class GeneralBox : Gtk.Box {
 		bbox.add(button);
     
 		button.clicked.connect(() => {
-			var win = new DonationWindow(parent_window); 
+			var win = new DonationWindow(window); 
 			win.show(); 
 		});
 	
@@ -543,7 +622,7 @@ public class GeneralBox : Gtk.Box {
 		bbox.add(button);
 
 		button.clicked.connect(() => { 
-			parent_window.btn_show_about_window(); 
+			window.btn_show_about_window(); 
 		}); 
 	}
 

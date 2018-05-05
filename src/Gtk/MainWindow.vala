@@ -39,8 +39,7 @@ public class MainWindow : Window {
 	private Gtk.Paned pane;
 	private Gtk.StackSidebar sidebar;
 	private Gtk.Stack stack;
-	private TermBox term;
-
+	
 	private string current_child;
 	private bool switch_to_terminal;
 
@@ -48,20 +47,28 @@ public class MainWindow : Window {
 	private int window_height = 700;
 
 	private GeneralBox box_general;
+	private InstallerBox box_inst;
 	private SettingsBox box_all;
 	private PackageManager mgr_pkg;
 	private RepoManager mgr_repo;
 	private PackageCacheManager mgr_cache;
+	private UserManager mgr_users;
+	private GroupManager mgr_groups;
+	private UserHomeManager mgr_home;
+	private MountManager mgr_mounts;
+	private DconfManager mgr_dconf;
+	private CronManager mgr_cron;
 	private ThemeManager mgr_themes;
 	private ThemeManager mgr_icons;
 	private FontManager mgr_fonts;
-	private DconfManager mgr_dconf;
-	private CronManager mgr_cron;
-	private UserHomeManager mgr_home;
-	private MountManager mgr_mounts;
-	private UserManager mgr_users;
-	private GroupManager mgr_groups;
+	private TermBox term;
+	
+	private string pages = "general installer all repos cache packages users groups home mounts dconf cron icons themes fonts console";
 
+	public signal void mode_changed();
+
+	public signal void guimode_changed();
+	
 	public signal void term_action_complete();
 
 	private const Gtk.TargetEntry[] targets = {
@@ -87,6 +94,8 @@ public class MainWindow : Window {
 		init_ui();
 
 		init_ui_general();
+
+		init_ui_installer();
 
 		init_ui_all();
 
@@ -116,7 +125,18 @@ public class MainWindow : Window {
 
 		init_ui_console();
 
+		// events -----------------------------
+
 		attach_drag_drop_handlers();
+
+		mode_changed.connect(on_mode_changed);
+
+		guimode_changed.connect(on_guimode_changed);
+
+		// initailize --------------------------
+
+		guimode_changed();
+		//on_guimode_changed();
 		
 		show_all();
 	}
@@ -208,7 +228,7 @@ public class MainWindow : Window {
 
 	private bool sidebar_button_release(Gdk.EventButton event){
 
-		log_debug("sidebar: %s".printf(stack.visible_child_name));
+		log_debug("MainWindow: sidebar_button_release(): %s".printf(stack.visible_child_name));
 
 		switch(stack.visible_child_name){
 		case "all":
@@ -281,144 +301,336 @@ public class MainWindow : Window {
 
 	private void init_ui_general(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "general", _("General"));
-
 		box_general = new GeneralBox(this);
-		vbox.add(box_general);
+	}
 
-		box_general.mode_changed.connect(()=>{
-			
-			mgr_repo.items.clear();
-			mgr_cache.items.clear();
-			mgr_pkg.items.clear();
-			mgr_icons.items.clear();
-			mgr_themes.items.clear();
-			mgr_fonts.items.clear();
-			mgr_users.items.clear();
-			mgr_groups.items.clear();
-			mgr_dconf.items.clear();
-			mgr_cron.items.clear();
-			mgr_home.items.clear();
-			mgr_mounts.items.clear();
+	private void init_ui_installer(){
 
-			mgr_cache.sensitive = !App.redist;
-			mgr_users.sensitive = !App.redist;
-			mgr_groups.sensitive = !App.redist;
-		});
+		box_inst = new InstallerBox(this);
 	}
 
 	private void init_ui_all(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "all", _("All Items"));
-
 		box_all = new SettingsBox(this);
-		vbox.add(box_all);
 	}
 	
 	private void init_ui_repos(){
 
 		mgr_repo = new RepoManager(this);
-
-		stack.add_titled(mgr_repo, "repos", _("Repos"));
 	}
 	
 	private void init_ui_cache(){
 
 		mgr_cache = new PackageCacheManager(this);
-
-		stack.add_titled(mgr_cache, "cache", _("Cache"));
 	}
 
 	private void init_ui_packages(){
 
 		mgr_pkg = new PackageManager(this);
-
-		stack.add_titled(mgr_pkg, "packages", _("Packages"));
 	}
 
 	private void init_ui_users(){
 
 		mgr_users = new UserManager(this);
-
-		stack.add_titled(mgr_users, "users", _("Users"));
 	}
 
 	private void init_ui_groups(){
 
 		mgr_groups = new GroupManager(this);
-
-		stack.add_titled(mgr_groups, "groups", _("Groups"));
 	}
 
 	private void init_ui_home(){
 
 		mgr_home = new UserHomeManager(this);
-
-		stack.add_titled(mgr_home, "home", _("Home"));
 	}
 
 	private void init_ui_mounts(){
 
 		mgr_mounts = new MountManager(this);
-
-		stack.add_titled(mgr_mounts, "mounts", _("Mounts"));
 	}
 
 	private void init_ui_dconf(){
 
 		mgr_dconf = new DconfManager(this);
-
-		stack.add_titled(mgr_dconf, "dconf", _("DConf"));
 	}
 
 	private void init_ui_cron(){
 
 		mgr_cron = new CronManager(this);
-
-		stack.add_titled(mgr_cron, "cron", _("Cron"));
 	}
 
 	private void init_ui_icons(){
 
 		mgr_icons = new ThemeManager(this, "icons");
-
-		stack.add_titled(mgr_icons, "icons", _("Icons"));
 	}
 
 	private void init_ui_themes(){
 
 		mgr_themes = new ThemeManager(this, "themes");
-
-		stack.add_titled(mgr_themes, "themes", _("Themes"));
 	}
 
 	private void init_ui_fonts(){
 
 		mgr_fonts = new FontManager(this);
-
-		stack.add_titled(mgr_fonts, "fonts", _("Fonts"));
 	}
 
 	private void init_ui_console(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "console", _("Terminal"));
-
 		term = new TermBox(this);
 		term.expand = true;
-		vbox.add(term);
-		
 		term.start_shell();
 	}
 
+	private void on_mode_changed(){
+
+		log_debug("MainWindow: on_mode_changed()");
+
+		mgr_repo.items.clear();
+		mgr_cache.items.clear();
+		mgr_pkg.items.clear();
+		mgr_icons.items.clear();
+		mgr_themes.items.clear();
+		mgr_fonts.items.clear();
+		mgr_users.items.clear();
+		mgr_groups.items.clear();
+		mgr_dconf.items.clear();
+		mgr_cron.items.clear();
+		mgr_home.items.clear();
+		mgr_mounts.items.clear();
+
+		mgr_cache.sensitive = !App.redist;
+		mgr_users.sensitive = !App.redist;
+		mgr_groups.sensitive = !App.redist;
+	}
+
+	private void on_guimode_changed(){
+
+		log_debug("MainWindow: on_guimode_changed()");
+
+		switch(App.guimode){
+			
+		case GUIMode.EASY:
+		
+			foreach(string page_name in pages.split(" ")){
+
+				if (page_name.strip().length > 0){ remove_page(page_name); }
+			}
+
+			foreach(string page_name in "general all console".split(" ")){
+
+				if (page_name.strip().length == 0){ continue; }
+				
+				add_page(page_name);
+			}
+			
+			break;
+			
+		case GUIMode.ADVANCED:
+		
+			foreach(string page_name in pages.split(" ")){
+
+				if (page_name.strip().length > 0){ remove_page(page_name); }
+			}
+
+			string active_pages = "general installer all repos cache packages users groups home mounts dconf cron icons themes fonts console";
+
+			if (!App.redist){
+				active_pages = active_pages.replace("installer","");
+			}
+			else{
+				active_pages = active_pages.replace("cache","").replace("users","").replace("groups","");
+			}
+			
+			foreach(string page_name in active_pages.split(" ")){
+
+				if (page_name.strip().length == 0){ continue; }
+				
+				add_page(page_name);
+			}
+
+			break;
+			
+		case GUIMode.EXPERT:
+
+			foreach(string page_name in pages.split(" ")){
+
+				if (page_name.strip().length > 0){ remove_page(page_name); }
+			}
+
+			string active_pages = "general installer all repos cache packages users groups home mounts dconf cron icons themes fonts console";
+
+			if (!App.redist){
+				active_pages = active_pages.replace("installer","");
+			}
+			else{
+				active_pages = active_pages.replace("cache","").replace("users","").replace("groups","");
+			}
+			
+			foreach(string page_name in active_pages.split(" ")){
+
+				if (page_name.strip().length == 0){ continue; }
+				
+				add_page(page_name);
+			}
+			
+			break;
+		}
+	}
+
+	private void add_page(string page_name){
+		
+		switch(page_name){
+		case "general":
+			stack.add_titled(box_general, "general", _("General"));
+			break;
+		case "installer":
+			stack.add_titled(box_inst, "installer", _("Installer"));
+			break;
+		case "all":
+			stack.add_titled(box_all, "all", _("All Items"));
+			break;
+		case "repos":
+			stack.add_titled(mgr_repo, "repos", _("Repos"));
+			break;
+		case "cache":
+			stack.add_titled(mgr_cache, "cache", _("Cache"));
+			break;
+		case "packages":
+			stack.add_titled(mgr_pkg, "packages", _("Packages"));
+			break;
+		case "users":
+			stack.add_titled(mgr_users, "users", _("Users"));
+			break;
+		case "groups":
+			stack.add_titled(mgr_groups, "groups", _("Groups"));
+			break;
+		case "home":
+			stack.add_titled(mgr_home, "home", _("Home"));
+			break;
+		case "mounts":
+			stack.add_titled(mgr_mounts, "mounts", _("Mounts"));
+			break;
+		case "dconf":
+			stack.add_titled(mgr_dconf, "dconf", _("DConf"));
+			break;
+		case "cron":
+			stack.add_titled(mgr_cron, "cron", _("Cron"));
+			break;
+		case "icons":
+			stack.add_titled(mgr_icons, "icons", _("Icons"));
+			break;
+		case "themes":
+			stack.add_titled(mgr_themes, "themes", _("Themes"));
+			break;
+		case "fonts":
+			stack.add_titled(mgr_fonts, "fonts", _("Fonts"));
+			break;
+		case "console":
+			stack.add_titled(term, "console", _("Terminal"));
+			break;
+		}
+	}
+
+	private void remove_page(string page_name){
+
+		var child = stack.get_child_by_name(page_name);
+		
+		if (child != null){ stack.remove(child);}
+		
+		/*switch(page_name){
+		case "general":
+			//stack.remove(box_general);
+			break;
+		case "all":
+			stack.remove(box_all);
+			break;
+		case "repos":
+			stack.remove(mgr_repo);
+			break;
+		case "cache":
+			stack.remove(mgr_cache);
+			break;
+		case "packages":
+			stack.remove(mgr_pkg);
+			break;
+		case "users":
+			stack.remove(mgr_users);
+			break;
+		case "groups":
+			stack.remove(mgr_groups);
+			break;
+		case "home":
+			stack.remove(mgr_home);
+			break;
+		case "mounts":
+			stack.remove(mgr_mounts);
+			break;
+		case "dconf":
+			stack.remove(mgr_dconf);
+			break;
+		case "cron":
+			stack.remove(mgr_cron);
+			break;
+		case "icons":
+			stack.remove(mgr_icons);
+			break;
+		case "themes":
+			stack.remove(mgr_themes);
+			break;
+		case "fonts":
+			stack.remove(mgr_fonts);
+			break;
+		case "console":
+			stack.remove(term);
+			break;
+		}
+		*/
+	}
+
+	public void clear_page(string page_name){
+		
+		switch(page_name){
+		case "repos":
+			mgr_repo.items.clear();
+			break;
+		case "cache":
+			mgr_cache.items.clear();
+			break;
+		case "packages":
+			mgr_pkg.items.clear();
+			break;
+		case "users":
+			mgr_users.items.clear();
+			break;
+		case "groups":
+			mgr_groups.items.clear();
+			break;
+		case "home":
+			mgr_home.items.clear();
+			break;
+		case "mounts":
+			mgr_mounts.items.clear();
+			break;
+		case "dconf":
+			mgr_dconf.items.clear();
+			break;
+		case "cron":
+			mgr_cron.items.clear();
+			break;
+		case "icons":
+			mgr_icons.items.clear();
+			break;
+		case "themes":
+			mgr_themes.items.clear();
+			break;
+		case "fonts":
+			mgr_fonts.items.clear();
+			break;
+		}
+	}
+
+	// actions ------------------------------
+	
 	public void execute(string cmd, bool _switch_to_terminal = true){
 
 		current_child = stack.visible_child_name;
@@ -455,13 +667,13 @@ public class MainWindow : Window {
 
 		if (App.mode == Mode.RESTORE){
 				
-			clear_items(current_child);
+			clear_page(current_child);
 
 			if (current_child == "packages"){
 
-				clear_items("fonts");
-				clear_items("icons");
-				clear_items("themes");
+				clear_page("fonts");
+				clear_page("icons");
+				clear_page("themes");
 			}
 		}
 
@@ -486,47 +698,6 @@ public class MainWindow : Window {
 		return term.get_status();
 	}
 	
-	public void clear_items(string page_name){
-		
-		switch(page_name){
-		case "repos":
-			mgr_repo.items.clear();
-			break;
-		case "cache":
-			mgr_cache.items.clear();
-			break;
-		case "packages":
-			mgr_pkg.items.clear();
-			break;
-		case "icons":
-			mgr_icons.items.clear();
-			break;
-		case "themes":
-			mgr_themes.items.clear();
-			break;
-		case "fonts":
-			mgr_fonts.items.clear();
-			break;
-		case "users":
-			mgr_users.items.clear();
-			break;
-		case "groups":
-			mgr_groups.items.clear();
-			break;
-		case "dconf":
-			mgr_dconf.items.clear();
-			break;
-		case "cron":
-			mgr_cron.items.clear();
-			break;
-		case "home":
-			mgr_home.items.clear();
-			break;
-		case "mounts":
-			mgr_mounts.items.clear();
-			break;
-		}
-	}
 	
 	public void btn_show_about_window(){
 		
@@ -589,6 +760,6 @@ public enum Mode{
 
 public enum GUIMode{
 	EASY,
-	NORMAL,
+	ADVANCED,
 	EXPERT
 }

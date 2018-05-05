@@ -40,13 +40,13 @@ public class SettingsBox : Gtk.Box {
 	protected Button btn_restore;
 	protected Button btn_backup;
 
-	private MainWindow parent_window;
+	private MainWindow window;
 	
 	// init -------------------------
 	
 	public SettingsBox(MainWindow parent) {
 
-		parent_window = parent;
+		window = parent;
 		
 		init_ui();
 	}
@@ -80,7 +80,7 @@ public class SettingsBox : Gtk.Box {
 		//label.margin = 12;
 		vbox.add(label);
 
-		var vbox2 = new Gtk.Box(Orientation.VERTICAL, 3);
+		var vbox2 = new Gtk.Box(Orientation.VERTICAL, 12);
 		vbox2.margin = 12;
 		vbox.add(vbox2);
 
@@ -101,146 +101,169 @@ public class SettingsBox : Gtk.Box {
 		label = new Gtk.Label(format_text(_("Settings"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
-		//label.margin = 12;
+		label.margin_bottom = 12;
 		vbox3.add(label);
 
-		var vbox4 = new Gtk.Box(Orientation.VERTICAL, 3);
-		vbox4.margin = 12;
-		vbox3.add(vbox4);
+		//var vbox4 = new Gtk.Box(Orientation.VERTICAL, 6);
+		//vbox4.margin = 12;
+		//vbox3.add(vbox4);
 
-		add_options_packages(vbox4);
+		add_options_packages(vbox3);
 
-		add_options_home(vbox4);
+		add_options_home(vbox3);
 	}
 
 	private void add_options_for_items(Gtk.Box vbox){
 
-		var chk_repo = create_checkbutton(vbox, Messages.TASK_REPOS);
+		string fmt = "%s - <span size=\"small\" style=\"italic\">%s</span>";
+
+		//NOTE: connect to 'clicked' event instead of 'toggled'
+
+		var chk_repo = create_checkbutton(vbox, fmt.printf(_("Repos"), Messages.TASK_REPOS));
 
 		chk_repo.active = App.include_repos;
-		chk_repo.toggled.connect(()=>{
+		chk_repo.clicked.connect(()=>{
 			App.include_repos = chk_repo.active;
 		});
 
 		// ----------------------------
 		
-		var chk_cache = create_checkbutton(vbox, Messages.TASK_CACHE);
+		var chk_cache = create_checkbutton(vbox, fmt.printf(_("Cache"), Messages.TASK_CACHE));
 
 		chk_cache.active = App.include_cache;
-		chk_cache.toggled.connect(()=>{
+		chk_cache.clicked.connect(()=>{
 			App.include_cache = chk_cache.active;
 		});
 
 		// ----------------------------
 		
-		var chk_packages = create_checkbutton(vbox, Messages.TASK_PACKAGES);
+		var chk_packages = create_checkbutton(vbox, fmt.printf(_("Packages"), Messages.TASK_PACKAGES));
 
 		chk_packages.active = App.include_packages;
-		chk_packages.toggled.connect(()=>{
+		chk_packages.clicked.connect(()=>{
 			App.include_packages = chk_packages.active;
 		});
 
 		// ----------------------------
 		
-		var chk_users = create_checkbutton(vbox, Messages.TASK_USERS);
+		var chk_users = create_checkbutton(vbox, fmt.printf(_("Users"), Messages.TASK_USERS));
 	
 		chk_users.active = App.include_users;
-		chk_users.toggled.connect(()=>{
+		chk_users.clicked.connect(()=>{
 			App.include_users = chk_users.active;
 		});
 
 		// ----------------------------
 
-		var chk_groups = create_checkbutton(vbox, Messages.TASK_GROUPS);
+		var chk_groups = create_checkbutton(vbox, fmt.printf(_("Groups"), Messages.TASK_GROUPS));
 
 		chk_groups.active = App.include_groups;
-		chk_groups.toggled.connect(()=>{
+		chk_groups.clicked.connect(()=>{
 			App.include_groups = chk_groups.active;
 		});
 
 		// ----------------------------
 
-		var chk_home = create_checkbutton(vbox, Messages.TASK_HOME);
+		var chk_home = create_checkbutton(vbox, fmt.printf(_("Home"), Messages.TASK_HOME));
 
 		chk_home.active = App.include_home;
-		chk_home.toggled.connect(()=>{
+		chk_home.clicked.connect(()=>{
 			App.include_home = chk_home.active;
 		});
 
 		// ----------------------------
 
-		var chk_mounts = create_checkbutton(vbox, Messages.TASK_MOUNTS);
+		var chk_mounts = create_checkbutton(vbox, fmt.printf(_("Mounts"), Messages.TASK_MOUNTS));
 
 		chk_mounts.active = App.include_mounts;
-		chk_mounts.toggled.connect(()=>{
+		chk_mounts.clicked.connect(()=>{
 			App.include_mounts = chk_mounts.active;
 		});
 
 		// ----------------------------
 
-		var chk_icons = create_checkbutton(vbox, Messages.TASK_ICONS);
-
-		chk_icons.active = App.include_icons;
-		chk_icons.toggled.connect(()=>{
-			App.include_icons = chk_icons.active;
-		});
-
-		// ----------------------------
-
-		var chk_themes = create_checkbutton(vbox, Messages.TASK_THEMES);
-
-		chk_themes.active = App.include_themes;
-		chk_themes.toggled.connect(()=>{
-			App.include_themes = chk_themes.active;
-		});
-
-		// ----------------------------
-
-		var chk_fonts = create_checkbutton(vbox, Messages.TASK_FONTS);
-
-		chk_fonts.active = App.include_fonts;
-		chk_fonts.toggled.connect(()=>{
-			App.include_fonts = chk_fonts.active;
-		});
-
-		// ----------------------------
-
-		var chk_dconf = create_checkbutton(vbox, Messages.TASK_DCONF);
+		var chk_dconf = create_checkbutton(vbox, fmt.printf(_("Dconf"), Messages.TASK_DCONF));
 
 		chk_dconf.active = App.include_dconf;
-		chk_dconf.toggled.connect(()=>{
+		chk_dconf.clicked.connect(()=>{
 			App.include_dconf = chk_dconf.active;
 		});
 
 		// ----------------------------
 
-		var chk_cron = create_checkbutton(vbox, Messages.TASK_CRON);
+		var chk_cron = create_checkbutton(vbox, fmt.printf(_("Cron"), Messages.TASK_CRON));
 
 		chk_cron.active = App.include_cron;
-		chk_cron.toggled.connect(()=>{
+		chk_cron.clicked.connect(()=>{
 			App.include_cron = chk_cron.active;
 		});
 
 		// ----------------------------
 
-		var chk_files = create_checkbutton(vbox, Messages.TASK_FILES);
+		var chk_icons = create_checkbutton(vbox, fmt.printf(_("Icons"), Messages.TASK_ICONS));
+
+		chk_icons.active = App.include_icons;
+		chk_icons.clicked.connect(()=>{
+			App.include_icons = chk_icons.active;
+		});
+
+		// ----------------------------
+
+		var chk_themes = create_checkbutton(vbox, fmt.printf(_("Themes"), Messages.TASK_THEMES));
+
+		chk_themes.active = App.include_themes;
+		chk_themes.clicked.connect(()=>{
+			App.include_themes = chk_themes.active;
+		});
+
+		// ----------------------------
+
+		var chk_fonts = create_checkbutton(vbox, fmt.printf(_("Fonts"), Messages.TASK_FONTS));
+
+		chk_fonts.active = App.include_fonts;
+		chk_fonts.clicked.connect(()=>{
+			App.include_fonts = chk_fonts.active;
+		});
+
+		// ----------------------------
+
+		var chk_files = create_checkbutton(vbox, fmt.printf(_("Files"), Messages.TASK_FILES));
 
 		chk_files.active = App.include_files;
-		chk_files.toggled.connect(()=>{
+		chk_files.clicked.connect(()=>{
 			App.include_files = chk_files.active;
 		});
 
 		// ----------------------------
 
-		var chk_scripts = create_checkbutton(vbox, Messages.TASK_SCRIPTS);
+		var chk_scripts = create_checkbutton(vbox, fmt.printf(_("Scripts"), Messages.TASK_SCRIPTS));
 
 		chk_scripts.active = App.include_scripts;
-		chk_scripts.toggled.connect(()=>{
+		chk_scripts.clicked.connect(()=>{
 			App.include_scripts = chk_scripts.active;
 		});
 
 		// ----------------------------
+
+		window.guimode_changed.connect(()=>{
+
+			chk_cache.sensitive = !App.redist;
+			chk_cache.active = App.redist ? false : App.include_cache;
+
+			chk_users.sensitive = !App.redist;
+			chk_users.active = App.redist ? false : App.include_users;
+
+			chk_groups.sensitive = !App.redist;
+			chk_groups.active = App.redist ? false : App.include_groups;
+
+			chk_files.sensitive = (App.mode == Mode.RESTORE);
+			chk_files.active = (App.mode == Mode.RESTORE);
+
+			chk_scripts.sensitive = (App.mode == Mode.RESTORE);
+			chk_scripts.active = (App.mode == Mode.RESTORE);
+		});
 	}
+
 
 	private void add_options_packages(Gtk.Box vbox){
 
@@ -250,7 +273,7 @@ public class SettingsBox : Gtk.Box {
 		//label.margin = 12;
 		vbox.add(label);
 
-		var vbox2 = new Gtk.Box(Orientation.VERTICAL, 3);
+		var vbox2 = new Gtk.Box(Orientation.VERTICAL, 12);
 		vbox2.margin = 12;
 		vbox.add(vbox2);
 
@@ -311,6 +334,7 @@ public class SettingsBox : Gtk.Box {
 		});
 	}
 
+
 	private void add_options_home(Gtk.Box vbox){
 
 		var label = new Gtk.Label("<b>%s</b>".printf(Messages.TASK_HOME));
@@ -319,7 +343,7 @@ public class SettingsBox : Gtk.Box {
 		//label.margin = 12;
 		vbox.add(label);
 
-		var vbox2 = new Gtk.Box(Orientation.VERTICAL, 3);
+		var vbox2 = new Gtk.Box(Orientation.VERTICAL, 12);
 		vbox2.margin = 12;
 		vbox.add(vbox2);
 
@@ -354,10 +378,15 @@ public class SettingsBox : Gtk.Box {
 		});
 	}
 		
-	private Gtk.CheckButton create_checkbutton(Gtk.Box box, string label){
+	private Gtk.CheckButton create_checkbutton(Gtk.Box box, string text){
 
-		var chk = new Gtk.CheckButton.with_label(label);
+		var chk = new Gtk.CheckButton();
 		box.add(chk);
+
+		var label = new Gtk.Label(text);
+		label.set_use_markup(true);
+		chk.add(label);
+		
 		return chk;
 	}
 	
@@ -432,7 +461,7 @@ public class SettingsBox : Gtk.Box {
 		if (none_selected) {
 			string title = _("No Items Selected");
 			string msg = _("Select items to backup");
-			gtk_messagebox(title, msg, parent_window, false);
+			gtk_messagebox(title, msg, window, false);
 			return;
 		}
 
@@ -453,7 +482,7 @@ public class SettingsBox : Gtk.Box {
 
 			cmd += get_cmd_options();
 
-			parent_window.execute(cmd);
+			window.execute(cmd);
 			
 			return false;
 		});
@@ -521,7 +550,7 @@ public class SettingsBox : Gtk.Box {
 		if (none_selected) {
 			string title = _("No Items Selected");
 			string msg = _("All items already installed. No items selected for installation.");
-			gtk_messagebox(title, msg, parent_window, false);
+			gtk_messagebox(title, msg, window, false);
 			return;
 		}
 
@@ -530,7 +559,7 @@ public class SettingsBox : Gtk.Box {
 		if (internet_needed && !check_internet_connectivity()) {
 			string title = _("Error");
 			string msg = Messages.INTERNET_OFFLINE;
-			gtk_messagebox(title, msg, parent_window, false);
+			gtk_messagebox(title, msg, window, false);
 			return;
 		}
 
@@ -551,7 +580,7 @@ public class SettingsBox : Gtk.Box {
 
 			cmd += get_cmd_options();
 
-			parent_window.execute(cmd);
+			window.execute(cmd);
 			
 			return false;
 		});
