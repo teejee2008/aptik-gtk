@@ -35,7 +35,7 @@ public class GroupManager : ManagerBox {
 
 	public GroupManager(MainWindow parent) {
 		
-		base(parent, "groups", "config-users", false);
+		base(parent, "groups", "config-users", false, true);
 	}
 
 	public override void init_ui_mode(Mode _mode) {

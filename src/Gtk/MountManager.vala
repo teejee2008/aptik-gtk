@@ -48,7 +48,7 @@ public class MountManager : ManagerBox {
 	
 	public MountManager(MainWindow parent) {
 		
-		base(parent, "mounts", "drive-harddisk", false);
+		base(parent, "mounts", "drive-harddisk", false, true);
 	}
 
 	public override void init_ui_mode(Mode _mode) {

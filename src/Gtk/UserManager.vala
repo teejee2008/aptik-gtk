@@ -35,7 +35,7 @@ public class UserManager : ManagerBox {
 
 	public UserManager(MainWindow parent) {
 		
-		base(parent, "users", "config-users", false);
+		base(parent, "users", "config-users", false, true);
 	}
 
 	public override void init_ui_mode(Mode _mode) {

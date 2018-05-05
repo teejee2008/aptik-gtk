@@ -53,6 +53,8 @@ public class AptikGtk : GLib.Object {
 	public string basepath = "";
 
 	public Mode mode = Mode.BACKUP;
+
+	public GUIMode guimode = Mode.NORMAL;
 	
 	public bool include_repos = true;
 	public bool include_cache = true;

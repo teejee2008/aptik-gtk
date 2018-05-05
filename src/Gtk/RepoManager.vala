@@ -35,7 +35,7 @@ public class RepoManager : ManagerBox {
 
 	public RepoManager(MainWindow parent) {
 		
-		base(parent, "repos", "x-system-software-sources", true);
+		base(parent, "repos", "x-system-software-sources", true, true);
 	}
 
 	public override void init_ui_mode(Mode _mode) {

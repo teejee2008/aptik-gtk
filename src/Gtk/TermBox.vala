@@ -175,14 +175,7 @@ public class TermBox : Gtk.Box {
 
 	public void init_bash(){
 
-		string cmd =
-"""
-if [ `id -u` -eq 0 ]; then
-  PS1='\[\e[31m\]\# \[\e[m\]'
-else
-  PS1='\[\033[01;93m\]\$ \[\033[00m\]'
-fi
-""";
+		string cmd = """if [ `id -u` -eq 0 ]; then  PS1='\[\e[31m\]\# \[\e[m\]'; else  PS1='\[\033[01;93m\]\$ \[\033[00m\]'; fi""";
 
 		feed_command(cmd);
 	}
@@ -209,11 +202,28 @@ fi
 		}
 	}
 
+	public int get_status(){
+
+		string status_file = "/tmp/aptik-last-status";
+		
+		feed_command("echo $? > '%s'".printf(status_file), true, false);
+
+		sleep(100);
+		
+		if (file_exists(status_file)){
+			int status = int.parse(file_read(status_file));
+			return status;
+		}
+		else{
+			return -1;
+		}
+	}
+
 	public int get_child_pid() {
 		return child_pid;
 	}
 
-	public void feed_command(string command, bool newline = true){
+	public void feed_command(string command, bool newline = true, bool signal_child_exit = true){
 
 		string cmd = command;
 
@@ -223,16 +233,19 @@ fi
 		
 		term.feed_child(cmd, -1);
 
-		Timeout.add(1000, ()=>{
+		if (signal_child_exit){
 
-			if (!has_running_process){
+			Timeout.add(1000, ()=>{
+
+				if (!has_running_process){
+					
+					child_exited();
+					return false;
+				}
 				
-				child_exited();
-				return false;
-			}
-			
-			return true;
-		});
+				return true;
+			});
+		}
 	}
 
 	public void refresh(){

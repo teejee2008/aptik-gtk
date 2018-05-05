@@ -35,7 +35,7 @@ public class PackageManager : ManagerBox {
 
 	public PackageManager(MainWindow parent) {
 		
-		base(parent, "packages", "package-x-generic", true);
+		base(parent, "packages", "package-x-generic", true, true);
 	}
 
 	public override void init_ui_mode(Mode _mode) {

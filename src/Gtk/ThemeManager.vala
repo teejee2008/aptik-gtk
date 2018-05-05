@@ -35,7 +35,7 @@ public class ThemeManager : ManagerBox {
 
 	public ThemeManager(MainWindow parent, string subtype) {
 		
-		base(parent, subtype, "preferences-theme", false);
+		base(parent, subtype, "preferences-theme", false, false);
 	}
 
 	public override void init_ui_mode(Mode _mode) {

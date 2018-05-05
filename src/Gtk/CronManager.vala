@@ -35,7 +35,7 @@ public class CronManager : ManagerBox {
 
 	public CronManager(MainWindow parent) {
 		
-		base(parent, "cron", "clock", false);
+		base(parent, "cron", "clock", false, true);
 	}
 
 	public override void init_ui_mode(Mode _mode) {

@@ -35,7 +35,7 @@ public class FontManager : ManagerBox {
 
 	public FontManager(MainWindow parent) {
 		
-		base(parent, "fonts", "font-x-generic", false);
+		base(parent, "fonts", "font-x-generic", false, false);
 	}
 
 	public override void init_ui_mode(Mode _mode) {

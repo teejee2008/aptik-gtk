@@ -41,6 +41,9 @@ public class MainWindow : Window {
 	private Gtk.Stack stack;
 	private TermBox term;
 
+	private string current_child;
+	private bool switch_to_terminal;
+
 	private int window_width = 900;
 	private int window_height = 700;
 
@@ -58,6 +61,8 @@ public class MainWindow : Window {
 	private MountManager mgr_mounts;
 	private UserManager mgr_users;
 	private GroupManager mgr_groups;
+
+	public signal void term_action_complete();
 
 	private const Gtk.TargetEntry[] targets = {
 		{ "text/uri-list", 0, 0}
@@ -318,134 +323,86 @@ public class MainWindow : Window {
 	
 	private void init_ui_repos(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "repos", _("Repos"));
-
 		mgr_repo = new RepoManager(this);
-		vbox.add(mgr_repo);
+
+		stack.add_titled(mgr_repo, "repos", _("Repos"));
 	}
 	
 	private void init_ui_cache(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "cache", _("Cache"));
-
 		mgr_cache = new PackageCacheManager(this);
-		vbox.add(mgr_cache);
+
+		stack.add_titled(mgr_cache, "cache", _("Cache"));
 	}
 
 	private void init_ui_packages(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "packages", _("Packages"));
-
 		mgr_pkg = new PackageManager(this);
-		vbox.add(mgr_pkg);
+
+		stack.add_titled(mgr_pkg, "packages", _("Packages"));
 	}
 
 	private void init_ui_users(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "users", _("Users"));
-
 		mgr_users = new UserManager(this);
-		vbox.add(mgr_users);
+
+		stack.add_titled(mgr_users, "users", _("Users"));
 	}
 
 	private void init_ui_groups(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "groups", _("Groups"));
-
 		mgr_groups = new GroupManager(this);
-		vbox.add(mgr_groups);
+
+		stack.add_titled(mgr_groups, "groups", _("Groups"));
 	}
 
 	private void init_ui_home(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "home", _("Home"));
-
 		mgr_home = new UserHomeManager(this);
-		vbox.add(mgr_home);
+
+		stack.add_titled(mgr_home, "home", _("Home"));
 	}
 
 	private void init_ui_mounts(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "mounts", _("Mounts"));
-
 		mgr_mounts = new MountManager(this);
-		vbox.add(mgr_mounts);
+
+		stack.add_titled(mgr_mounts, "mounts", _("Mounts"));
 	}
 
 	private void init_ui_dconf(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "dconf", _("DConf"));
-
 		mgr_dconf = new DconfManager(this);
-		vbox.add(mgr_dconf);
+
+		stack.add_titled(mgr_dconf, "dconf", _("DConf"));
 	}
 
 	private void init_ui_cron(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "cron", _("Cron"));
-
 		mgr_cron = new CronManager(this);
-		vbox.add(mgr_cron);
+
+		stack.add_titled(mgr_cron, "cron", _("Cron"));
 	}
 
 	private void init_ui_icons(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "icons", _("Icons"));
-
 		mgr_icons = new ThemeManager(this, "icons");
-		vbox.add(mgr_icons);
+
+		stack.add_titled(mgr_icons, "icons", _("Icons"));
 	}
 
 	private void init_ui_themes(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "themes", _("Themes"));
-
 		mgr_themes = new ThemeManager(this, "themes");
-		vbox.add(mgr_themes);
+
+		stack.add_titled(mgr_themes, "themes", _("Themes"));
 	}
 
 	private void init_ui_fonts(){
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.margin = 6;
-		
-		stack.add_titled(vbox, "fonts", _("Fonts"));
-
 		mgr_fonts = new FontManager(this);
-		vbox.add(mgr_fonts);
+
+		stack.add_titled(mgr_fonts, "fonts", _("Fonts"));
 	}
 
 	private void init_ui_console(){
@@ -460,16 +417,21 @@ public class MainWindow : Window {
 		vbox.add(term);
 		
 		term.start_shell();
-
 	}
 
-	public void execute(string cmd){
+	public void execute(string cmd, bool _switch_to_terminal = true){
 
-		string current_child = stack.visible_child_name;
-		
-		stack.visible_child_name = "console";
+		current_child = stack.visible_child_name;
+
+		switch_to_terminal = _switch_to_terminal;
+
+		if (switch_to_terminal){
+			
+			stack.visible_child_name = "console";
+		}
 		
 		if (term.has_running_process){
+			
 			string txt = _("Terminal Busy");
 			string msg = _("A process is running in terminal. Please wait for it to complete.");
 			gtk_messagebox(txt, msg, this, true);
@@ -480,27 +442,50 @@ public class MainWindow : Window {
 		sidebar.sensitive = false;
 		
 		term.child_exited.connect(()=>{
+			
 			sidebar.sensitive = true;
 		});
 
 		term.feed_command(cmd);
 
-		term.child_exited.connect(()=>{
-
-			if (App.mode == Mode.RESTORE){
-				
-				clear_items(current_child);
-
-				if (current_child == "packages"){
-
-					clear_items("fonts");
-					clear_items("icons");
-					clear_items("themes");
-				}
-			}
-		});
+		term.child_exited.connect(on_term_child_exit);
 	}
 
+	public void on_term_child_exit(){
+
+		if (App.mode == Mode.RESTORE){
+				
+			clear_items(current_child);
+
+			if (current_child == "packages"){
+
+				clear_items("fonts");
+				clear_items("icons");
+				clear_items("themes");
+			}
+		}
+
+		if (!switch_to_terminal){
+
+			var box = (ManagerBox) stack.get_child_by_name(current_child);
+
+			if (get_status() == 0){
+				box.show_action_result(true);
+			}
+			else{
+				box.show_action_result(false);
+				stack.visible_child_name = "console";
+			}
+		}
+
+		term.child_exited.disconnect(on_term_child_exit);
+	}
+
+	public int get_status(){
+		
+		return term.get_status();
+	}
+	
 	public void clear_items(string page_name){
 		
 		switch(page_name){
@@ -556,9 +541,10 @@ public class MainWindow : Window {
 		};
 
 		dialog.third_party = {
-			"Numix project (Main app icon):https://numixproject.org/",
+			"Numix project (various icons):https://numixproject.org/",
 			"Elementary project (various icons):https://github.com/elementary/icons",
-			"Tango project (various icons):http://tango.freedesktop.org/Tango_Desktop_Project"
+			"Tango project (various icons):http://tango.freedesktop.org/Tango_Desktop_Project",
+			"Arc Icon Theme (various icons):https://github.com/horst3180/arc-icon-theme"
 		};
 		
 		dialog.translators = {
@@ -589,7 +575,10 @@ public class MainWindow : Window {
 		dialog.initialize();
 		dialog.show_all();
 	}
-	
+
+	public void set_sidebar_sensitive(bool _sensitive){
+		sidebar.sensitive = _sensitive;
+	}
 }
 
 public enum Mode{
@@ -598,3 +587,8 @@ public enum Mode{
 	MANAGE
 }
 
+public enum GUIMode{
+	EASY,
+	NORMAL,
+	EXPERT
+}

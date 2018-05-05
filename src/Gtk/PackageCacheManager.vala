@@ -35,7 +35,7 @@ public class PackageCacheManager : ManagerBox {
 
 	public PackageCacheManager(MainWindow parent) {
 		
-		base(parent, "cache", "download", false);
+		base(parent, "cache", "download", false, false);
 	}
 
 	protected override void init_ui(){

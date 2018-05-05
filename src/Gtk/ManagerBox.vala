@@ -59,7 +59,7 @@ public class ManagerBox : Gtk.Box {
 	protected Button btn_select_reset;
 
 	protected Gtk.Overlay overlay; 
-	protected Gtk.Box vbox_overlay;
+	protected Gtk.Box? vbox_overlay;
 
 	protected Mode mode = Mode.BACKUP;
 
@@ -67,7 +67,7 @@ public class ManagerBox : Gtk.Box {
 	protected uint tmr_refilter = 0;
 	protected bool is_running = false;
 
-	protected MainWindow parent_window;
+	protected MainWindow window;
 
 	protected string item_type = "";
 
@@ -75,11 +75,16 @@ public class ManagerBox : Gtk.Box {
 
 	protected bool internet_needed_for_restore = false;
 
+	protected bool show_status = false;
+
 	public Gee.ArrayList<Item> items = new Gee.ArrayList<Item>();
 
-	public ManagerBox(MainWindow parent, string _item_type, string _item_icon_name, bool _internet_needed_for_restore) {
+	public ManagerBox(MainWindow parent, string _item_type, string _item_icon_name, bool _internet_needed_for_restore, bool _show_status) {
 
-		parent_window = parent;
+		spacing = 6;
+		margin = 6;
+		
+		window = parent;
 
 		item_type = _item_type;
 
@@ -92,6 +97,8 @@ public class ManagerBox : Gtk.Box {
     
 		vbox_main = new Gtk.Box(Orientation.VERTICAL, 6);
 		overlay.add(vbox_main);
+
+		show_status = _show_status;
 
 		init_ui();
 	}
@@ -120,6 +127,8 @@ public class ManagerBox : Gtk.Box {
 
 	public void start_spinner(){
 
+		log_debug("start_spinner()");
+		
 		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
 		vbox.halign = Align.CENTER;
 		vbox.valign = Align.CENTER;
@@ -134,18 +143,60 @@ public class ManagerBox : Gtk.Box {
 		overlay.add_overlay(vbox);
 
 		vbox_main.sensitive = false;
+		window.set_sidebar_sensitive(false);
 		
 		show_all();
 		gtk_do_events();
 	}
 
-	public void stop_spinner(){
+	public void remove_overlay(){
+
+		if (vbox_overlay == null){ return; }
+		
+		log_debug("remove_overlay()");
 
 		overlay.remove(vbox_overlay);
+		vbox_overlay = null;
 
 		vbox_main.sensitive = true;
+		window.set_sidebar_sensitive(true);
 
 		gtk_do_events();
+	}
+
+	public void show_action_result(bool success){
+
+		log_debug("show_action_result():%s".printf(success.to_string()));
+
+		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+		vbox.halign = Align.CENTER;
+		vbox.valign = Align.CENTER;
+		vbox_overlay = vbox;
+
+		Gtk.Image img;
+		
+		if (success){
+			img = IconManager.lookup_image("action-ok", 128);
+			
+		}
+		else{
+			img = IconManager.lookup_image("action-error", 128);
+		}
+		
+		img.set_size_request(128,128);
+		vbox.add(img);
+		
+		overlay.add_overlay(vbox);
+
+		overlay.show_all();
+		gtk_do_events();
+
+		Timeout.add(1000, ()=>{
+
+			remove_overlay();
+			gtk_set_busy(false, window);
+			return false;
+		});
 	}
 
 	protected bool init_ui_mode_delayed() {
@@ -725,7 +776,7 @@ public class ManagerBox : Gtk.Box {
 		
 		//gtk_do_events();
 
-		stop_spinner();
+		remove_overlay();
 
 		show_all();
 	}
@@ -780,7 +831,7 @@ public class ManagerBox : Gtk.Box {
 		if (none_selected) {
 			string title = _("No Items Selected");
 			string msg = _("Select items to backup");
-			gtk_messagebox(title, msg, parent_window, false);
+			gtk_messagebox(title, msg, window, false);
 			return;
 		}
 
@@ -800,9 +851,16 @@ public class ManagerBox : Gtk.Box {
 			}
 
 			cmd += " --basepath '%s'".printf(escape_single_quote(basepath));
+
+			bool show_status_animation = show_status && (mode == Mode.BACKUP);
 			
-			parent_window.execute(cmd);
-			
+			window.execute(cmd, !show_status_animation);
+
+			if (show_status_animation){
+				vbox_main.sensitive = false;
+				gtk_set_busy(true, window);
+			}
+
 			return false;
 		});
 	}
@@ -1015,7 +1073,10 @@ public class ManagerBox : Gtk.Box {
 		//}
 
 		//dlg.destroy();
-		stop_spinner();
+		remove_overlay();
+
+
+		
 		gtk_do_events();
 	}
 
@@ -1071,14 +1132,14 @@ public class ManagerBox : Gtk.Box {
 		if (none_selected) {
 			string title = _("No Items Selected");
 			string msg = _("All items already installed. No items selected for installation.");
-			gtk_messagebox(title, msg, parent_window, false);
+			gtk_messagebox(title, msg, window, false);
 			return;
 		}
 
 		if (internet_needed_for_restore && !check_internet_connectivity()) {
 			string title = _("Error");
 			string msg = Messages.INTERNET_OFFLINE;
-			gtk_messagebox(title, msg, parent_window, false);
+			gtk_messagebox(title, msg, window, false);
 			return;
 		}
 
@@ -1099,7 +1160,7 @@ public class ManagerBox : Gtk.Box {
 
 			cmd += " --basepath '%s'".printf(escape_single_quote(basepath));
 			
-			parent_window.execute(cmd);
+			window.execute(cmd);
 			
 			return false;
 		});

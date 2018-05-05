@@ -35,7 +35,7 @@ public class DconfManager : ManagerBox {
 
 	public DconfManager(MainWindow parent) {
 		
-		base(parent, "dconf", "preferences-system", false);
+		base(parent, "dconf", "preferences-system", false, true);
 	}
 
 	public override void init_ui_mode(Mode _mode) {

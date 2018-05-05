@@ -37,7 +37,7 @@ public class UserHomeManager : ManagerBox {
 	
 	public UserHomeManager(MainWindow parent) {
 		
-		base(parent, "home", "user-home", false);
+		base(parent, "home", "user-home", false, false);
 	}
 
 	public override void init_ui_mode(Mode _mode) {

@@ -52,7 +52,7 @@ public class GeneralBox : Gtk.Box {
 		parent_window = parent;
 
 		vbox_main = new Gtk.Box(Orientation.VERTICAL, 12);
-		vbox_main.margin = 12;
+		vbox_main.margin = 6;
 		this.add(vbox_main);
 
 		init_ui();
@@ -60,7 +60,11 @@ public class GeneralBox : Gtk.Box {
 
 	protected virtual void init_ui(){
 
+		sg_buttons = new Gtk.SizeGroup(SizeGroupMode.HORIZONTAL);
+
 		init_ui_location();
+		
+		init_ui_mode_gui_mode();
 
 		init_ui_mode();
 
@@ -72,16 +76,20 @@ public class GeneralBox : Gtk.Box {
 	}
 
 	private void init_ui_location() {
+
+		var vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+		vbox.margin_top = 12;
+		vbox_main.add(vbox);
 		
 		// header
 		var label = new Gtk.Label(format_text(_("Select Backup Path"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
-		vbox_main.pack_start(label, false, true, 0);
+		vbox.pack_start(label, false, true, 0);
 		
 		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
 		hbox.margin = 12;
-		vbox_main.pack_start(hbox, false, true, 0);
+		vbox.pack_start(hbox, false, true, 0);
 
 		hbox.set_size_request(500,-1);
 
@@ -160,27 +168,118 @@ public class GeneralBox : Gtk.Box {
 		}
 	}
 
+	private void init_ui_mode_gui_mode() {
+
+		var vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+		vbox.margin_top = 12;
+		vbox_main.add(vbox);
+		
+		// header
+		var label = new Gtk.Label(format_text(_("Select UI Layout"), true, false, true));
+		label.set_use_markup(true);
+		label.halign = Align.START;
+		label.margin_bottom = 12;
+		vbox.add(label);
+
+		// backup --------------------------------
+
+		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		vbox.add(hbox);
+		
+		var button = new Gtk.ToggleButton.with_label(_("Easy"));
+		hbox.add(button);
+		
+		sg_buttons.add_widget(button);
+		var btn_easy = button;
+		
+		label = new Gtk.Label(format_text(_("Backup and Restore with a single click"), false, true, false));
+		label.set_use_markup(true);
+		hbox.add(label);
+
+		// restore -------------------------
+
+		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		vbox.add(hbox);
+
+		button = new Gtk.ToggleButton.with_label(_("Advanced"));
+		hbox.add(button);
+		
+		sg_buttons.add_widget(button);
+		var btn_advanced = button;
+
+		label = new Gtk.Label(format_text(_("Show advanced options for individual items"), false, true, false));
+		label.set_use_markup(true);
+		hbox.add(label);
+
+		// installer -------------------------
+
+		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+		vbox.add(hbox);
+
+		button = new Gtk.ToggleButton.with_label(_("Expert"));
+		hbox.add(button);
+		
+		sg_buttons.add_widget(button);
+		var btn_expert = button;
+
+		label = new Gtk.Label(format_text(_("Show all advanced options"), false, true, false));
+		label.set_use_markup(true);
+		hbox.add(label);
+
+		// events -----------------------
+		
+		btn_easy.clicked.connect(() => {
+			if (btn_easy.active){
+				btn_advanced.active = false;
+				btn_expert.active = false;
+				mode_changed();
+			}
+		});
+
+		btn_advanced.clicked.connect(() => {
+			if (btn_advanced.active){
+				btn_easy.active = false;
+				btn_expert.active = false;
+				mode_changed();
+			}
+		});
+		
+		btn_expert.clicked.connect(() => {
+			if (btn_expert.active){
+				btn_easy.active = false;
+				btn_advanced.active = false;
+				mode_changed();
+			}
+		});
+
+		btn_easy.active = true;
+		
+		btn_easy.grab_focus();
+	}
+
 	private void init_ui_mode() {
+
+		var vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+		vbox.margin_top = 12;
+		vbox_main.add(vbox);
 		
 		// header
 		var label = new Gtk.Label(format_text(_("Select Mode"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
 		label.margin_bottom = 12;
-		vbox_main.add(label);
+		vbox.add(label);
 
-		var sg = new Gtk.SizeGroup(SizeGroupMode.HORIZONTAL);
-		sg_buttons = sg;
-		
 		// backup --------------------------------
 
 		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox_main.add(hbox);
+		vbox.add(hbox);
 		
 		var button = new Gtk.ToggleButton.with_label(_("Backup"));
 		button.set_tooltip_text(_("Create backups for current system"));
 		hbox.add(button);
-		sg.add_widget(button);
+		
+		sg_buttons.add_widget(button);
 		var btn_backup = button;
 		
 		label = new Gtk.Label(format_text(_("Create backups for current system"), false, true, false));
@@ -190,12 +289,13 @@ public class GeneralBox : Gtk.Box {
 		// restore -------------------------
 
 		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox_main.add(hbox);
+		vbox.add(hbox);
 
 		button = new Gtk.ToggleButton.with_label(_("Restore"));
 		button.set_tooltip_text(_("Restore backups on new system"));
 		hbox.add(button);
-		sg.add_widget(button);
+		
+		sg_buttons.add_widget(button);
 		var btn_restore = button;
 
 		label = new Gtk.Label(format_text(_("Restore backups on new system"), false, true, false));
@@ -205,13 +305,14 @@ public class GeneralBox : Gtk.Box {
 		// installer -------------------------
 
 		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox_main.add(hbox);
+		vbox.add(hbox);
 		var hbox_installer = hbox;
 		
 		button = new Gtk.ToggleButton.with_label(_("Create Installer"));
 		button.set_tooltip_text(_("Create installer to share with friends"));
 		hbox.add(button);
-		sg.add_widget(button);
+		
+		sg_buttons.add_widget(button);
 		var btn_installer = button;
 
 		label = new Gtk.Label(format_text(_("Create installer to share with friends"), false, true, false));
