@@ -141,9 +141,18 @@ public class MainWindow : Window {
 		show_all();
 
 		Timeout.add(100, ()=>{
+
+			term.shell_exited.connect(on_term_shell_exited);
+			
 			term.start_shell(true);
+			
 			return false;
 		});
+	}
+
+	private void on_term_shell_exited(){
+		
+		exit(1);
 	}
 
 	private void attach_drag_drop_handlers(){

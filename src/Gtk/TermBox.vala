@@ -167,11 +167,15 @@ public class TermBox : Gtk.Box {
 			init_bash();
 
 			term.child_exited.connect((status)=>{
+				
 				log_debug("TermBox: shell_exited(): pid=%d, status=%d".printf(child_pid, status));
+				
 				child_exited();
+				
 				shell_exited();
+				
 				//if (!cancelled){
-				//	start_shell();
+				//	start_shell(as_admin);
 				//}
 			});
 
