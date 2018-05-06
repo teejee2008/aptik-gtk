@@ -291,7 +291,7 @@ public class ManagerBox : Gtk.Box {
 		treeview.get_selection().mode = SelectionMode.MULTIPLE;
 		treeview.headers_clickable = true;
 		//treeview.set_rules_hint (true);
-		treeview.set_tooltip_column(4);
+		//treeview.set_tooltip_column(4);
 
 		//scrolled
 		var scrolled = new Gtk.ScrolledWindow(null, null);

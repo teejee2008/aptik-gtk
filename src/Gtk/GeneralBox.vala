@@ -63,15 +63,13 @@ public class GeneralBox : Gtk.Box {
 
 	protected virtual void init_ui(){
 
-		sg_buttons = new Gtk.SizeGroup(SizeGroupMode.HORIZONTAL);
+		sg_buttons = new Gtk.SizeGroup(SizeGroupMode.BOTH);
 
 		init_ui_location();
-		
-		init_ui_mode_gui_mode();
 
 		init_ui_mode();
 
-		init_ui_mode_installer();
+		init_ui_mode_gui_mode();
 
 		add_links();
 		
@@ -84,7 +82,7 @@ public class GeneralBox : Gtk.Box {
 		vbox_main.add(vbox);
 		
 		// header
-		var label = new Gtk.Label(format_text(_("Select Backup Path"), true, false, true));
+		var label = new Gtk.Label(format_text(_("Backup Path"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
 		//label.margin_top = 12;
@@ -180,7 +178,7 @@ public class GeneralBox : Gtk.Box {
 		vbox_main.add(vbox);
 		
 		// header
-		var label = new Gtk.Label(format_text(_("Select UI Mode"), true, false, true));
+		var label = new Gtk.Label(format_text(_("UI Mode"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
 		label.margin_top = 12;
@@ -320,7 +318,7 @@ public class GeneralBox : Gtk.Box {
 		vbox_main.add(vbox);
 		
 		// header
-		var label = new Gtk.Label(format_text(_("Select Backup Mode"), true, false, true));
+		var label = new Gtk.Label(format_text(_("Backup Mode"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
 		label.margin_top = 12;
@@ -338,11 +336,12 @@ public class GeneralBox : Gtk.Box {
 		vbox.add(hbox);
 		
 		var button = new Gtk.ToggleButton.with_label(_("Backup"));
-		button.set_tooltip_text(_("Create backups for current system"));
 		hbox.add(button);
 		
 		sg_buttons.add_widget(button);
 		btn_backup = button;
+
+		button.set_size_request(200, 40);
 		
 		label = new Gtk.Label(format_text(_("Create backups for current system"), false, true, false));
 		label.set_use_markup(true);
@@ -354,7 +353,6 @@ public class GeneralBox : Gtk.Box {
 		vbox.add(hbox);
 
 		button = new Gtk.ToggleButton.with_label(_("Restore"));
-		button.set_tooltip_text(_("Restore backups on new system"));
 		hbox.add(button);
 		
 		sg_buttons.add_widget(button);
@@ -371,7 +369,6 @@ public class GeneralBox : Gtk.Box {
 		hbox_installer_mode = hbox;
 		
 		button = new Gtk.ToggleButton.with_label(_("Create Installer"));
-		button.set_tooltip_text(_("Create installer to share with friends"));
 		hbox.add(button);
 		
 		sg_buttons.add_widget(button);
@@ -453,144 +450,6 @@ public class GeneralBox : Gtk.Box {
 
 		window.mode_changed();
 		window.guimode_changed();
-	}
-
-	private void init_ui_mode_installer() {
-
-		vbox_installer = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
-		vbox_installer.margin_top = 12;
-		vbox_main.add(vbox_installer);
-
-		gtk_hide(vbox_installer);
-		
-		// header -------------------------
-		
-		var label = new Gtk.Label(format_text(_("Installer Options"), true, false, true));
-		label.set_use_markup(true);
-		label.halign = Align.START;
-		label.margin_bottom = 12;
-		vbox_installer.add(label);
-
-		var sg = new Gtk.SizeGroup(SizeGroupMode.HORIZONTAL);
-
-		// name --------------------
-		
-		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox_installer.add(hbox);
-
-		label = new Gtk.Label(_("Title"));
-		label.xalign = 0.0f;
-		hbox.add(label);
-		sg.add_widget(label);
-		
-		var entry = new Gtk.Entry();
-		entry.hexpand = true;
-		hbox.add(entry);
-		entry_appname = entry;
-		
-		entry.text = _("My Tweaks v1.0");
-
-		// file name -----------------------
-
-		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox_installer.add(hbox);
-
-		label = new Gtk.Label(_("File name"));
-		label.xalign = 0.0f;
-		hbox.add(label);
-		sg.add_widget(label);
-		
-		entry = new Gtk.Entry();
-		entry.hexpand = true;
-		hbox.add(entry);
-		entry_outname = entry;
-
-		string distname = App.distro.description;
-
-		if (!distname.contains(App.distro.release)){
-			distname += "_%s".printf(App.distro.release);
-		}
-
-		distname = distname.replace(" ", "_").down();
-		
-		string outname = "installer-%s-%s.run".printf(distname, App.distro.package_arch);
- 
-		entry.text = outname;
-
-		// work dir -----------------------
-
-		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox_installer.add(hbox);
-
-		label = new Gtk.Label(_("Working Dir"));
-		label.xalign = 0.0f;
-		hbox.add(label);
-		sg.add_widget(label);
-		
-		entry = new Gtk.Entry();
-		entry.hexpand = true;
-		hbox.add(entry);
-		entry.sensitive = false;
-		entry_outpath = entry;
-
-		entry.text = path_combine(App.basepath, "distribution");
-
-		var button = new Gtk.Button.with_label(_("Open"));
-		button.set_tooltip_text(_("Open folder"));
-		hbox.add(button);
-
-		button.clicked.connect(() => {
-
-			string dist_path = path_combine(App.basepath, "distribution");
-			dir_create(dist_path);
-			exo_open_folder(dist_path, false);
-		});
-
-		// prepare -------------------------
-
-		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		hbox.margin_top = 12;
-		vbox_installer.add(hbox);
-
-		label = new Gtk.Label(format_text(_("Create backups and click 'Generate Installer' to finish"), false, true, false));
-		label.set_use_markup(true);
-		hbox.add(label);
-
-		// action -------------------------
-
-		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		hbox.margin_top = 12;
-		vbox_installer.add(hbox);
-
-		var btn_generate = new Gtk.ToggleButton.with_label(_("Generate Installer"));
-		hbox.add(btn_generate);
-		sg_buttons.add_widget(btn_generate);
-
-		label = new Gtk.Label(format_text(_("Generate installer from backup files"), false, true, false));
-		label.set_use_markup(true);
-		hbox.add(label);
-
-		btn_generate.clicked.connect(()=>{
-			
-			Timeout.add(100, ()=>{
-				
-				string dist_path = path_combine(App.basepath, "distribution");
-
-				string cmd = "pkexec aptik-gen --pack";
-
-				cmd += " --appname '%s'".printf(escape_single_quote(entry_appname.text));
-
-				cmd += " --outname '%s'".printf(escape_single_quote(entry_outname.text));
-
-				cmd += " --outpath '%s'".printf(escape_single_quote(entry_outpath.text));
-
-				cmd += " --basepath '%s'".printf(escape_single_quote(dist_path));
-				
-				window.execute(cmd);
-				
-				return false;
-			});
-		});
 	}
 
 	private void add_links(){
