@@ -93,6 +93,7 @@ public class CustomMessageDialog : Gtk.Dialog {
 	}
 
 	public void init_window () {
+		
 		title = "";
 		
 		window_position = WindowPosition.CENTER_ON_PARENT;
@@ -103,13 +104,12 @@ public class CustomMessageDialog : Gtk.Dialog {
 		skip_pager_hint = true;
 		
 		//vbox_main
-		vbox_main = get_content_area () as Gtk.Box;
-		vbox_main.margin = 6;
+		vbox_main = get_content_area() as Gtk.Box;
+		vbox_main.margin = 12;
 
 		//hbox_contents
-		var hbox_contents = new Gtk.Box(Orientation.HORIZONTAL, 6);
-		hbox_contents.margin = 6;
-		vbox_main.add (hbox_contents);
+		var hbox_contents = new Gtk.Box(Orientation.HORIZONTAL, 12);
+		vbox_main.add(hbox_contents);
 
 		string icon_name = "dialog-info";
 		
@@ -131,7 +131,7 @@ public class CustomMessageDialog : Gtk.Dialog {
 		// image ----------------
 		
 		var img = new Image.from_icon_name(icon_name, Gtk.IconSize.DIALOG);
-		//img.margin_right = 12;
+		img.margin = 6;
 		hbox_contents.add(img);
 		
 		// label -------------------
@@ -139,6 +139,7 @@ public class CustomMessageDialog : Gtk.Dialog {
 		var text = "<span weight=\"bold\" size=\"x-large\">%s</span>\n\n%s".printf(
 			escape_html(msg_title),
 			escape_html(msg_body));
+		
 		lbl_msg = new Gtk.Label(text);
 		lbl_msg.xalign = 0.0f;
 		lbl_msg.yalign = 0.0f;
@@ -146,8 +147,7 @@ public class CustomMessageDialog : Gtk.Dialog {
 		lbl_msg.wrap = true;
 		lbl_msg.wrap_mode = Pango.WrapMode.WORD_CHAR;
 		lbl_msg.use_markup = true;
-		lbl_msg.margin_right = 25;
-		
+
 		//sw_msg
 		sw_msg = new Gtk.ScrolledWindow(null, null);
 		//sw_msg.set_shadow_type (ShadowType.ETCHED_IN);
@@ -158,9 +158,6 @@ public class CustomMessageDialog : Gtk.Dialog {
 		hbox_contents.add(sw_msg);
 
 		// actions -------------------------
-		
-		var action_area = get_action_area () as Gtk.Box;
-		action_area.margin_top = 12;
 
 		switch(buttons_type){
 		case Gtk.ButtonsType.OK:
