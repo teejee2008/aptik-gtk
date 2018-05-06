@@ -284,7 +284,7 @@ public class GeneralBox : Gtk.Box {
 				gtk_hide(hbox_installer_mode);
 			}
 
-			switch(App.guimode){
+			/*switch(App.guimode){
 				
 			case GUIMode.EASY:
 			
@@ -296,7 +296,7 @@ public class GeneralBox : Gtk.Box {
 			
 				hbox_installer_mode.sensitive = true;
 				break;
-			}
+			}*/
 		});
 
 		// set initial state ---------------------

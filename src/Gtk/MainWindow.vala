@@ -436,7 +436,7 @@ public class MainWindow : Window {
 				if (page_name.strip().length > 0){ remove_page(page_name); }
 			}
 
-			string active_pages = "general installer all repos cache packages users groups home mounts dconf cron icons themes fonts console";
+			string active_pages = "general installer repos cache packages users groups home mounts dconf cron icons themes fonts console";
 
 			if (!App.redist){
 				active_pages = active_pages.replace("installer","");
@@ -461,7 +461,7 @@ public class MainWindow : Window {
 				if (page_name.strip().length > 0){ remove_page(page_name); }
 			}
 
-			string active_pages = "general installer all repos cache packages users groups home mounts dconf cron icons themes fonts console";
+			string active_pages = "general installer repos cache packages users groups home mounts dconf cron icons themes fonts console";
 
 			if (!App.redist){
 				active_pages = active_pages.replace("installer","");
@@ -491,7 +491,17 @@ public class MainWindow : Window {
 			stack.add_titled(box_inst, "installer", _("Installer"));
 			break;
 		case "all":
-			stack.add_titled(box_all, "all", _("All Items"));
+			if (App.guimode == GUIMode.EASY){
+				if (App.mode == Mode.BACKUP){
+					stack.add_titled(box_all, "all", _("Backup"));
+				}
+				else{
+					stack.add_titled(box_all, "all", _("Restore"));
+				}
+			}
+			else{
+				stack.add_titled(box_all, "all", _("All Items"));
+			}
 			break;
 		case "repos":
 			stack.add_titled(mgr_repo, "repos", _("Repos"));
