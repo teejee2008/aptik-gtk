@@ -41,6 +41,7 @@ public class ManagerBox : Gtk.Box {
 	protected ComboBox cmb_status;
 	protected Gtk.Label lbl_count;
 
+	protected Gtk.Box hbox_actions;
 	protected Gtk.ButtonBox bbox_selection;
 	protected Gtk.ButtonBox bbox_execute;
 	
@@ -75,11 +76,13 @@ public class ManagerBox : Gtk.Box {
 
 	protected bool internet_needed_for_restore = false;
 
+	protected bool append_basepath_for_backup = false;
+
 	protected bool show_status = false;
 
 	public Gee.ArrayList<Item> items = new Gee.ArrayList<Item>();
 
-	public ManagerBox(MainWindow parent, string _item_type, string _item_icon_name, bool _internet_needed_for_restore, bool _show_status) {
+	public ManagerBox(MainWindow parent, string _item_type, string _item_icon_name, bool _internet_needed_for_restore, bool _show_status, bool _append_basepath_for_backup = false) {
 
 		spacing = 6;
 		margin = 6;
@@ -99,6 +102,8 @@ public class ManagerBox : Gtk.Box {
 		overlay.add(vbox_main);
 
 		show_status = _show_status;
+
+		append_basepath_for_backup = _append_basepath_for_backup;
 
 		init_ui();
 	}
@@ -164,39 +169,61 @@ public class ManagerBox : Gtk.Box {
 		gtk_do_events();
 	}
 
-	public void show_action_result(bool success){
+	public void finish_action(bool show_animation, bool success, bool refresh){
 
 		log_debug("show_action_result():%s".printf(success.to_string()));
 
-		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
-		vbox.halign = Align.CENTER;
-		vbox.valign = Align.CENTER;
-		vbox_overlay = vbox;
-
-		Gtk.Image img;
+		int delay = 0;
 		
-		if (success){
-			img = IconManager.lookup_image("action-ok", 128);
+		if (show_animation){
+
+			var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
+			vbox.halign = Align.CENTER;
+			vbox.valign = Align.CENTER;
+			vbox_overlay = vbox;
+
+			Gtk.Image img;
 			
-		}
-		else{
-			img = IconManager.lookup_image("action-error", 128);
+			if (success){
+				img = IconManager.lookup_image("action-ok", 128);
+				
+			}
+			else{
+				img = IconManager.lookup_image("action-error", 128);
+			}
+			
+			img.set_size_request(128,128);
+			vbox.add(img);
+			
+			overlay.add_overlay(vbox);
+
+			overlay.show_all();
+			gtk_do_events();
+
+			delay += 1000;
+			
+			Timeout.add(delay, ()=>{
+
+				remove_overlay();
+				gtk_set_busy(false, window);
+
+				return false;
+			});
 		}
 		
-		img.set_size_request(128,128);
-		vbox.add(img);
-		
-		overlay.add_overlay(vbox);
+		if (refresh){
 
-		overlay.show_all();
-		gtk_do_events();
+			delay += 100;
+			
+			Timeout.add(delay, ()=>{
+				
+				items.clear();
+				
+				init_ui_mode(App.mode);
 
-		Timeout.add(1000, ()=>{
-
-			remove_overlay();
-			gtk_set_busy(false, window);
-			return false;
-		});
+				return false;
+			});
+		}
 	}
 
 	protected bool init_ui_mode_delayed() {
@@ -343,7 +370,7 @@ public class ManagerBox : Gtk.Box {
 		col_desc = new TreeViewColumn();
 		col_desc.title = _("Description");
 		col_desc.resizable = true;
-		//col_desc.min_width = 300;
+		col_desc.min_width = 100;
 		treeview.append_column(col_desc);
 
 		var cell_desc = new CellRendererText ();
@@ -406,6 +433,7 @@ public class ManagerBox : Gtk.Box {
 
 		var box = new Gtk.Box(Orientation.HORIZONTAL, 6);
 		vbox_main.add(box);
+		hbox_actions = box;
 
 		var bbox1 = new Gtk.ButtonBox(Orientation.HORIZONTAL);
 		bbox1.set_layout(Gtk.ButtonBoxStyle.EXPAND);
@@ -790,6 +818,10 @@ public class ManagerBox : Gtk.Box {
 		string std_out, std_err;
 		string cmd = "aptik --dump-%s".printf(item_type);
 
+		if (append_basepath_for_backup){
+			cmd += " --basepath '%s'".printf(escape_single_quote(App.basepath));
+		}
+
 		log_debug("$ " + cmd);
 		
 		exec_sync(cmd, out std_out, out std_err);
@@ -846,7 +878,7 @@ public class ManagerBox : Gtk.Box {
 			string basepath = App.basepath;
 
 			if (App.redist){
-				basepath = path_combine(App.basepath, "distribution");
+				basepath = path_combine(App.basepath, "installer");
 				cmd += " --redist";
 			}
 
@@ -854,7 +886,7 @@ public class ManagerBox : Gtk.Box {
 
 			bool show_status_animation = show_status && (mode == Mode.BACKUP);
 			
-			window.execute(cmd, !show_status_animation);
+			window.execute(cmd, !show_status_animation, show_status_animation, (mode != Mode.BACKUP));
 
 			if (show_status_animation){
 				vbox_main.sensitive = false;
@@ -870,7 +902,7 @@ public class ManagerBox : Gtk.Box {
 		string basepath = App.basepath;
 
 		if (App.redist){
-			basepath = path_combine(App.basepath, "distribution");
+			basepath = path_combine(App.basepath, "installer");
 		}
 			
 		string backup_path = create_backup_path(basepath);
@@ -1087,8 +1119,10 @@ public class ManagerBox : Gtk.Box {
 		items.clear();
 
 		string std_out, std_err;
-		string cmd = "aptik --dump-%s-backup --basepath '%s'".printf(item_type, escape_single_quote(App.basepath));
+		string cmd = "aptik --dump-%s-backup".printf(item_type);
 
+		cmd += " --basepath '%s'".printf(escape_single_quote(App.basepath));
+		
 		log_debug("$ " + cmd);
 		
 		exec_sync(cmd, out std_out, out std_err);
@@ -1154,13 +1188,13 @@ public class ManagerBox : Gtk.Box {
 			string basepath = App.basepath;
 
 			//if (App.redist){
-			//	basepath = path_combine(App.basepath, "distribution");
+			//	basepath = path_combine(App.basepath, "installer");
 			//	cmd += " --redist";
 			//}
 
 			cmd += " --basepath '%s'".printf(escape_single_quote(basepath));
 			
-			window.execute(cmd);
+			window.execute(cmd, true, false, true);
 			
 			return false;
 		});

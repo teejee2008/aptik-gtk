@@ -474,7 +474,7 @@ public class SettingsBox : Gtk.Box {
 			string basepath = App.basepath;
 
 			if (App.redist){
-				basepath = path_combine(App.basepath, "distribution");
+				basepath = path_combine(App.basepath, "installer");
 				cmd += " --redist";
 			}
 
@@ -482,7 +482,7 @@ public class SettingsBox : Gtk.Box {
 
 			cmd += get_cmd_options();
 
-			window.execute(cmd);
+			window.execute(cmd, true, false, false);
 			
 			return false;
 		});
@@ -572,7 +572,7 @@ public class SettingsBox : Gtk.Box {
 			string basepath = App.basepath;
 
 			if (App.redist){
-				basepath = path_combine(App.basepath, "distribution");
+				basepath = path_combine(App.basepath, "installer");
 				cmd += " --redist";
 			}
 
@@ -580,7 +580,7 @@ public class SettingsBox : Gtk.Box {
 
 			cmd += get_cmd_options();
 
-			window.execute(cmd);
+			window.execute(cmd, true, false, false);
 			
 			return false;
 		});

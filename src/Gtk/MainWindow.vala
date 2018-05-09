@@ -42,7 +42,9 @@ public class MainWindow : Window {
 	
 	private string current_child;
 	private bool switch_to_terminal;
-
+	private bool show_action_result_on_exit;
+	private bool refresh_on_exit;
+	
 	private int window_width = 900;
 	private int window_height = 700;
 
@@ -61,9 +63,11 @@ public class MainWindow : Window {
 	private ThemeManager mgr_themes;
 	private ThemeManager mgr_icons;
 	private FontManager mgr_fonts;
+	private FilesManager mgr_files;
+	private ScriptManager mgr_scripts;
 	private TermBox term;
 	
-	private string pages = "general installer all repos cache packages users groups home mounts dconf cron icons themes fonts console";
+	private string pages = "general installer all repos cache packages users groups home mounts dconf cron icons themes fonts files scripts console";
 
 	public signal void mode_changed();
 
@@ -92,38 +96,6 @@ public class MainWindow : Window {
 		check_aptik_version();
 
 		init_ui();
-
-		init_ui_general();
-
-		init_ui_installer();
-
-		init_ui_all();
-
-		init_ui_repos();
-
-		init_ui_cache();
-
-		init_ui_packages();
-
-		init_ui_users();
-
-		init_ui_groups();
-
-		init_ui_home();
-
-		init_ui_mounts();
-
-		init_ui_dconf();
-
-		init_ui_cron();
-
-		init_ui_icons();
-
-		init_ui_themes();
-
-		init_ui_fonts();
-
-		init_ui_console();
 
 		// events -----------------------------
 
@@ -238,6 +210,45 @@ public class MainWindow : Window {
 		pane.wide_handle = false;
 		
 		sidebar.set_stack(stack);
+
+		// init classes ---------------------------------
+		
+		box_general = new GeneralBox(this);
+
+		box_inst = new InstallerBox(this);
+
+		box_all = new SettingsBox(this);
+
+		mgr_repo = new RepoManager(this);
+
+		mgr_cache = new PackageCacheManager(this);
+
+		mgr_pkg = new PackageManager(this);
+
+		mgr_users = new UserManager(this);
+
+		mgr_groups = new GroupManager(this);
+
+		mgr_home = new UserHomeManager(this);
+
+		mgr_mounts = new MountManager(this);
+
+		mgr_dconf = new DconfManager(this);
+
+		mgr_cron = new CronManager(this);
+
+		mgr_icons = new ThemeManager(this, "icons");
+
+		mgr_themes = new ThemeManager(this, "themes");
+
+		mgr_fonts = new FontManager(this);
+
+		mgr_files = new FilesManager(this);
+
+		mgr_scripts = new ScriptManager(this);
+
+		term = new TermBox(this);
+		term.expand = true;
 	}
 
 	private bool sidebar_button_release(Gdk.EventButton event){
@@ -308,92 +319,21 @@ public class MainWindow : Window {
 				mgr_mounts.init_ui_mode(App.mode);
 			}
 			break;
+		case "files":
+			if (mgr_files.items.size == 0){
+				mgr_files.init_ui_mode(App.mode);
+			}
+			break;
+		case "scripts":
+			if (mgr_scripts.items.size == 0){
+				mgr_scripts.init_ui_mode(App.mode);
+			}
+			break;
 		}
 
 		return false;
 	}
-
-	private void init_ui_general(){
-
-		box_general = new GeneralBox(this);
-	}
-
-	private void init_ui_installer(){
-
-		box_inst = new InstallerBox(this);
-	}
-
-	private void init_ui_all(){
-
-		box_all = new SettingsBox(this);
-	}
 	
-	private void init_ui_repos(){
-
-		mgr_repo = new RepoManager(this);
-	}
-	
-	private void init_ui_cache(){
-
-		mgr_cache = new PackageCacheManager(this);
-	}
-
-	private void init_ui_packages(){
-
-		mgr_pkg = new PackageManager(this);
-	}
-
-	private void init_ui_users(){
-
-		mgr_users = new UserManager(this);
-	}
-
-	private void init_ui_groups(){
-
-		mgr_groups = new GroupManager(this);
-	}
-
-	private void init_ui_home(){
-
-		mgr_home = new UserHomeManager(this);
-	}
-
-	private void init_ui_mounts(){
-
-		mgr_mounts = new MountManager(this);
-	}
-
-	private void init_ui_dconf(){
-
-		mgr_dconf = new DconfManager(this);
-	}
-
-	private void init_ui_cron(){
-
-		mgr_cron = new CronManager(this);
-	}
-
-	private void init_ui_icons(){
-
-		mgr_icons = new ThemeManager(this, "icons");
-	}
-
-	private void init_ui_themes(){
-
-		mgr_themes = new ThemeManager(this, "themes");
-	}
-
-	private void init_ui_fonts(){
-
-		mgr_fonts = new FontManager(this);
-	}
-
-	private void init_ui_console(){
-
-		term = new TermBox(this);
-		term.expand = true;
-	}
-
 	private void on_mode_changed(){
 
 		log_debug("MainWindow: on_mode_changed()");
@@ -470,7 +410,7 @@ public class MainWindow : Window {
 				if (page_name.strip().length > 0){ remove_page(page_name); }
 			}
 
-			string active_pages = "general installer repos cache packages users groups home mounts dconf cron icons themes fonts console";
+			string active_pages = "general installer repos cache packages users groups home mounts dconf cron icons themes fonts files scripts console";
 
 			if (!App.redist){
 				active_pages = active_pages.replace("installer","");
@@ -548,6 +488,12 @@ public class MainWindow : Window {
 		case "fonts":
 			stack.add_titled(mgr_fonts, "fonts", _("Fonts"));
 			break;
+		case "files":
+			stack.add_titled(mgr_files, "files", _("Files"));
+			break;
+		case "scripts":
+			stack.add_titled(mgr_scripts, "scripts", _("Scripts"));
+			break;
 		case "console":
 			stack.add_titled(term, "console", _("Terminal"));
 			break;
@@ -559,55 +505,6 @@ public class MainWindow : Window {
 		var child = stack.get_child_by_name(page_name);
 		
 		if (child != null){ stack.remove(child);}
-		
-		/*switch(page_name){
-		case "general":
-			//stack.remove(box_general);
-			break;
-		case "all":
-			stack.remove(box_all);
-			break;
-		case "repos":
-			stack.remove(mgr_repo);
-			break;
-		case "cache":
-			stack.remove(mgr_cache);
-			break;
-		case "packages":
-			stack.remove(mgr_pkg);
-			break;
-		case "users":
-			stack.remove(mgr_users);
-			break;
-		case "groups":
-			stack.remove(mgr_groups);
-			break;
-		case "home":
-			stack.remove(mgr_home);
-			break;
-		case "mounts":
-			stack.remove(mgr_mounts);
-			break;
-		case "dconf":
-			stack.remove(mgr_dconf);
-			break;
-		case "cron":
-			stack.remove(mgr_cron);
-			break;
-		case "icons":
-			stack.remove(mgr_icons);
-			break;
-		case "themes":
-			stack.remove(mgr_themes);
-			break;
-		case "fonts":
-			stack.remove(mgr_fonts);
-			break;
-		case "console":
-			stack.remove(term);
-			break;
-		}
-		*/
 	}
 
 	public void clear_page(string page_name){
@@ -649,18 +546,28 @@ public class MainWindow : Window {
 		case "fonts":
 			mgr_fonts.items.clear();
 			break;
+		case "files":
+			mgr_files.items.clear();
+			break;
+		case "scripts":
+			mgr_scripts.items.clear();
+			break;
 		}
 	}
 
 	// actions ------------------------------
 	
-	public void execute(string cmd, bool _switch_to_terminal = true){
+	public void execute(string cmd, bool _switch_to_terminal, bool _show_action_result_on_exit, bool _refresh_on_exit){
 
 		term.init_bash();
 
 		current_child = stack.visible_child_name;
 
 		switch_to_terminal = _switch_to_terminal;
+
+		show_action_result_on_exit = _show_action_result_on_exit;
+
+		refresh_on_exit = _refresh_on_exit;
 
 		if (switch_to_terminal){
 			
@@ -677,11 +584,6 @@ public class MainWindow : Window {
 		}
 
 		sidebar.sensitive = false;
-		
-		term.child_exited.connect(()=>{
-			
-			sidebar.sensitive = true;
-		});
 
 		term.feed_command(cmd, true, true);
 
@@ -690,6 +592,8 @@ public class MainWindow : Window {
 
 	public void on_term_child_exit(){
 
+		sidebar.sensitive = true;
+		
 		if (App.mode == Mode.RESTORE){
 				
 			clear_page(current_child);
@@ -706,11 +610,15 @@ public class MainWindow : Window {
 
 			var box = (ManagerBox) stack.get_child_by_name(current_child);
 
-			if (get_status() == 0){
-				box.show_action_result(true);
+			bool refresh = false;
+			if ((App.mode == Mode.RESTORE) || (current_child == "files") || (current_child == "scripts")){
+				refresh = true;
 			}
-			else{
-				box.show_action_result(false);
+
+			bool success = (get_status() == 0);
+			box.finish_action(show_action_result_on_exit, success, refresh_on_exit);
+
+			if (!success){
 				stack.visible_child_name = "console";
 			}
 		}

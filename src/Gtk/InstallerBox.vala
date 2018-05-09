@@ -196,7 +196,7 @@ public class InstallerBox : Gtk.Box {
 
 				cmd += " --basepath '%s'".printf(escape_single_quote(files_path));
 				
-				window.execute(cmd);
+				window.execute(cmd, true, false, false);
 				
 				return false;
 			});
