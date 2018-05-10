@@ -36,7 +36,7 @@ using TeeJee.GtkHelper;
 
 public const string AppName = "Aptik GTK";
 public const string AppShortName = "aptik-gtk";
-public const string AppVersion = "18.5.1";
+public const string AppVersion = "18.5.2";
 public const string AppAuthor = "Tony George";
 public const string AppAuthorEmail = "teejeetech@gmail.com";
 
@@ -54,7 +54,7 @@ public class AptikGtk : GLib.Object {
 
 	public Mode mode = Mode.BACKUP;
 
-	public GUIMode guimode = Mode.EASY;
+	public GUIMode guimode = GUIMode.EASY;
 	
 	public bool include_repos = true;
 	public bool include_cache = true;

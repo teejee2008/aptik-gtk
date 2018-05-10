@@ -34,6 +34,8 @@ using TeeJee.GtkHelper;
 public class ScriptManager : ManagerBox {
 
 	protected Gtk.TreeViewColumn col_enable;
+
+	protected Gtk.Box bbox_backup;
 	
 	public ScriptManager(MainWindow parent) {
 		
@@ -59,6 +61,8 @@ public class ScriptManager : ManagerBox {
 		bbox.hexpand = true;
 		bbox.set_layout(Gtk.ButtonBoxStyle.CENTER);
 		hbox_actions.add(bbox);
+
+		bbox_backup = bbox;
 
 		//btn_add_files
 		var button = new Gtk.Button.with_label(_("Add Script File"));
@@ -118,6 +122,20 @@ public class ScriptManager : ManagerBox {
 		}
 
 		(cell as Gtk.CellRendererText).text = txt;
+	}
+
+	public override void init_ui_mode(Mode _mode) {
+
+		base.init_ui_mode(_mode);
+
+		if (mode == Mode.BACKUP){
+			gtk_show(bbox_backup);
+			gtk_hide(bbox_execute);
+		}
+		else{
+			gtk_hide(bbox_backup);
+			gtk_show(bbox_execute);
+		}
 	}
 
 	protected virtual void btn_add_files_clicked() {
