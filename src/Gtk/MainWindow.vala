@@ -255,7 +255,7 @@ public class MainWindow : Window {
 
 		log_debug("MainWindow: sidebar_button_release(): %s".printf(stack.visible_child_name));
 
-		if ((App.basepath.length == 0) || !file_exists(App.basepath)){
+		if (App.basepath.length == 0){
 			
 			string txt = _("Backup Path Not Selected");
 			string msg = _("Select backup path");
@@ -329,14 +329,10 @@ public class MainWindow : Window {
 			}
 			break;
 		case "files":
-			if (mgr_files.items.size == 0){
-				mgr_files.init_ui_mode(App.mode);
-			}
+			mgr_files.init_ui_mode(App.mode);
 			break;
 		case "scripts":
-			if (mgr_scripts.items.size == 0){
-				mgr_scripts.init_ui_mode(App.mode);
-			}
+			mgr_scripts.init_ui_mode(App.mode);
 			break;
 		}
 
@@ -359,6 +355,8 @@ public class MainWindow : Window {
 		mgr_cron.items.clear();
 		mgr_home.items.clear();
 		mgr_mounts.items.clear();
+		//mgr_files.items.clear(); // doesn't change with mode
+		//mgr_scripts.items.clear(); // doesn't change with mode
 
 		mgr_cache.sensitive = !App.redist;
 		mgr_users.sensitive = !App.redist;

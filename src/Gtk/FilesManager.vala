@@ -35,6 +35,8 @@ public class FilesManager : ManagerBox {
 
 	protected Gtk.TreeViewColumn col_src;
 
+	protected Gtk.Box bbox_backup;
+	
 	public FilesManager(MainWindow parent) {
 		
 		base(parent, "files", "package-x-generic", false, true, true);
@@ -54,8 +56,6 @@ public class FilesManager : ManagerBox {
 
 		gtk_hide(bbox_selection);
 
-		gtk_hide(bbox_execute);
-
 		// actions ----------------
 		
 		var bbox = new Gtk.ButtonBox(Orientation.HORIZONTAL);
@@ -63,6 +63,8 @@ public class FilesManager : ManagerBox {
 		bbox.hexpand = true;
 		bbox.set_layout(Gtk.ButtonBoxStyle.CENTER);
 		hbox_actions.add(bbox);
+
+		bbox_backup = bbox;
 
 		//btn_add_files
 		var button = new Gtk.Button.with_label(_("Add Files"));
@@ -103,6 +105,20 @@ public class FilesManager : ManagerBox {
 		col_src.pack_start(cell_src, false);
 
 		col_src.set_cell_data_func(cell_src, cell_src_data_func);
+	}
+
+	public override void init_ui_mode(Mode _mode) {
+
+		base.init_ui_mode(_mode);
+
+		if (mode == Mode.BACKUP){
+			gtk_show(bbox_backup);
+			gtk_hide(bbox_execute);
+		}
+		else{
+			gtk_hide(bbox_backup);
+			gtk_show(bbox_execute);
+		}
 	}
 
 	protected void cell_src_data_func(CellLayout cell_layout, CellRenderer cell, TreeModel model, TreeIter iter){

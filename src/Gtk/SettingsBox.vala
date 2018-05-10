@@ -248,13 +248,13 @@ public class SettingsBox : Gtk.Box {
 		window.guimode_changed.connect(()=>{
 
 			chk_cache.sensitive = !App.redist;
-			chk_cache.active = App.redist ? false : App.include_cache;
+			chk_cache.active = App.redist ? false : true;
 
 			chk_users.sensitive = !App.redist;
-			chk_users.active = App.redist ? false : App.include_users;
+			chk_users.active = App.redist ? false : true;
 
 			chk_groups.sensitive = !App.redist;
-			chk_groups.active = App.redist ? false : App.include_groups;
+			chk_groups.active = App.redist ? false : true;
 
 			chk_files.sensitive = (App.mode == Mode.RESTORE);
 			chk_files.active = (App.mode == Mode.RESTORE);
