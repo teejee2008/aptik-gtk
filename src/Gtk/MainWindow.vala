@@ -255,6 +255,15 @@ public class MainWindow : Window {
 
 		log_debug("MainWindow: sidebar_button_release(): %s".printf(stack.visible_child_name));
 
+		if ((App.basepath.length == 0) || !file_exists(App.basepath)){
+			
+			string txt = _("Backup Path Not Selected");
+			string msg = _("Select backup path");
+			gtk_messagebox(txt, msg, this, true);
+			stack.visible_child_name = "general";
+			return false;
+		}
+
 		switch(stack.visible_child_name){
 		case "all":
 			box_all.init_ui_mode();
