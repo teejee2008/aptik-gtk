@@ -54,6 +54,8 @@ public class ScriptManager : ManagerBox {
 
 		gtk_hide(bbox_execute);
 
+		btn_restore.label = _("Execute Scripts");
+
 		// actions ----------------
 		
 		var bbox = new Gtk.ButtonBox(Orientation.HORIZONTAL);
@@ -131,10 +133,12 @@ public class ScriptManager : ManagerBox {
 		if (mode == Mode.BACKUP){
 			gtk_show(bbox_backup);
 			gtk_hide(bbox_execute);
+			col_select.visible = true;
 		}
 		else{
 			gtk_hide(bbox_backup);
 			gtk_show(bbox_execute);
+			col_select.visible = false;
 		}
 	}
 

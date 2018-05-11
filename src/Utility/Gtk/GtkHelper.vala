@@ -771,8 +771,9 @@ namespace TeeJee.GtkHelper{
 	// file chooser ----------------
 
 	public Gee.ArrayList<string> gtk_select_files(Gtk.Window? parent_window,
-		bool select_files = true, bool select_multiple = false, Gee.ArrayList<Gtk.FileFilter>? filters = null, Gtk.FileFilter? default_filter = null, string window_title = "", string default_path = ""){
-
+		bool select_files = true, bool select_multiple = false,
+		Gee.ArrayList<Gtk.FileFilter>? filters = null, Gtk.FileFilter? default_filter = null,
+		string window_title = "", string default_path = ""){
 
 		/* Example:
 		

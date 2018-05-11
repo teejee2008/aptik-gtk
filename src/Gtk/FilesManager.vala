@@ -161,7 +161,7 @@ public class FilesManager : ManagerBox {
 		
 		var default_filter = filter;
 
-		var selected_items = gtk_select_files(window, true, true, filters, default_filter);
+		var selected_items = gtk_select_files(window, true, true, filters, default_filter, "", "/");
 		//string iso_file = (selected_files.size > 0) ? selected_files[0] : "";
 
 		if (selected_items.size == 0){
@@ -221,7 +221,7 @@ public class FilesManager : ManagerBox {
 		
 		var default_filter = filter;
 
-		var selected_items = gtk_select_files(window, false, true, filters, default_filter);
+		var selected_items = gtk_select_files(window, false, true, filters, default_filter, "", "/");
 		//string iso_file = (selected_files.size > 0) ? selected_files[0] : "";
 
 		if (selected_items.size == 0){
