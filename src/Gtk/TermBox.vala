@@ -73,8 +73,8 @@ public class TermBox : Gtk.Box {
 		var scrolled = new Gtk.ScrolledWindow(null, null);
 		scrolled.set_shadow_type(ShadowType.ETCHED_IN);
 		scrolled.expand = true;
-		scrolled.hscrollbar_policy = PolicyType.ALWAYS;
-		scrolled.vscrollbar_policy = PolicyType.ALWAYS;
+		scrolled.hscrollbar_policy = PolicyType.AUTOMATIC;
+		scrolled.vscrollbar_policy = PolicyType.AUTOMATIC;
 		this.add(scrolled);
 
 		//terminal
@@ -91,7 +91,7 @@ public class TermBox : Gtk.Box {
 		term.allow_bold = false;
 
 		term.scroll_on_keystroke = true;
-		term.scroll_on_output = false;
+		term.scroll_on_output = true;
 		term.scrollback_lines = 100000;
 
 		var fontdesc = Pango.FontDescription.from_string("liberation mono,droid sans mono,ubuntu mono,monospace regular 10");

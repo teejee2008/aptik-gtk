@@ -1,3 +1,22 @@
+aptik-gtk (18.5.2) xenial; urgency=medium
+
+  * Added options for selecting UI layout - simple, advanced, and expert
+
+  * User will be prompted for authorization once on startup
+
+  * Exit application if terminal is closed or auth prompt is dismissed
+
+  * Show status animation for some sections instead of switching to terminal window
+
+  * Added section for Files
+
+  * Added section for Scripts
+  
+  * UI improvements
+
+ -- Tony George <tony.george.kol@gmail.com>  Sat, 12 May 2018 10:00:00 +0530
+
+
 aptik-gtk (18.5.1) xenial; urgency=medium
 
   * Copy deb files to backup location when drag-dropped on window
