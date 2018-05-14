@@ -38,6 +38,7 @@ public class ManagerBox : Gtk.Box {
 	protected Box hbox_filter;
 	protected Entry txt_filter;
 
+	protected Box hbox_filter_extra;
 	protected ComboBox cmb_status;
 	protected Gtk.Label lbl_count;
 
@@ -253,13 +254,7 @@ public class ManagerBox : Gtk.Box {
 
 		//hbox_filter
 		hbox_filter = new Box (Orientation.HORIZONTAL, 6);
-		//hbox_filter.margin_left = 3;
-		//hbox_filter.margin_right = 3;
 		vbox_main.add (hbox_filter);
-
-		//filter
-		//Label lbl_filter = new Label(_("Filter"));
-		//hbox_filter.add (lbl_filter);
 
 		//txt_filter
 		txt_filter = new Entry();
@@ -273,8 +268,8 @@ public class ManagerBox : Gtk.Box {
 			model_filter.refilter();
 		});
 
-		//string tt = _("Search name and description");
-		//txt_filter.set_tooltip_markup(tt);
+		hbox_filter_extra = new Box (Orientation.HORIZONTAL, 6);
+		hbox_filter.add(hbox_filter_extra);
 		
 		init_cmb_status();
 
@@ -294,7 +289,7 @@ public class ManagerBox : Gtk.Box {
 
 		//cmb_status
 		cmb_status = new Gtk.ComboBox();
-		hbox_filter.add(cmb_status);
+		hbox_filter_extra.add(cmb_status);
 
 		var cell_cmb_status = new Gtk.CellRendererPixbuf();
 		cmb_status.pack_start(cell_cmb_status, false);
@@ -759,7 +754,7 @@ public class ManagerBox : Gtk.Box {
 	
 	// backup
 
-	protected void backup_init() {
+	protected virtual void backup_init() {
 
 		log_debug("ManagerBox.backup_init()");
 		
@@ -1006,6 +1001,11 @@ public class ManagerBox : Gtk.Box {
 				item.is_manual = (match.fetch(1) == "1") ? true : false;
 			}
 
+			match = regex_match("""SEC='([^']*)'""", line);
+			if (match != null){
+				item.section = match.fetch(1);
+			}
+
 			match = regex_match("""ENC='(0|1)'""", line);
 			if (match != null){
 				item.is_encrypted = (match.fetch(1) == "1") ? true : false;
@@ -1205,6 +1205,7 @@ public class Item : GLib.Object {
 	
 	public string name = "";
 	public string desc = "";
+	public string section = "";
 
 	public bool is_selected = false;
 	public bool is_selected_by_default = false;

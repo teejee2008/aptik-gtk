@@ -33,6 +33,10 @@ using TeeJee.GtkHelper;
 
 public class PackageManager : ManagerBox {
 
+	protected Gee.ArrayList<string> sections;
+
+	protected ComboBox cmb_section;
+
 	public PackageManager(MainWindow parent) {
 		
 		base(parent, "packages", "package-x-generic", true, true);
@@ -46,6 +50,13 @@ public class PackageManager : ManagerBox {
 
 		col_name.title = _("Package");
 		col_desc.title = _("Description");
+	}
+
+	protected override void init_filters(){
+		
+		base.init_filters();
+
+		init_cmb_section();
 	}
 	
 	protected override void init_cmb_status(){
@@ -67,43 +78,25 @@ public class PackageManager : ManagerBox {
 		cmb_status.set_tooltip_markup(tt);
 	}
 
-	/*private void init_cmb_section(){
+	private void init_cmb_section(){
 
-		//cmb_pkg_section
-		cmb_pkg_section = new ComboBox();
-		cmb_pkg_section.set_tooltip_text(_("Category"));
-		hbox_filter.add (cmb_pkg_section);
+		//cmb_section
+		cmb_section = new ComboBox();
+		cmb_section.set_tooltip_text(_("Category"));
+		hbox_filter_extra.add (cmb_section);
 
 		CellRendererText cell_pkg_section = new CellRendererText();
-		cmb_pkg_section.pack_start(cell_pkg_section, false );
-		cmb_pkg_section.set_cell_data_func (cell_pkg_section, (cell_pkg_section, cell, model, iter) => {
+		cmb_section.pack_start(cell_pkg_section, false );
+		cmb_section.set_cell_data_func (cell_pkg_section, (cell_pkg_section, cell, model, iter) => {
 			string section;
 			model.get (iter, 0, out section, -1);
 			(cell as Gtk.CellRendererText).text = section;
 		});
-	}*/
+
+		cmb_section.changed.connect(treeview_refilter);
+	}
 
 	// events
-
-	protected override void on_drag_data_received (Gdk.DragContext drag_context, int x, int y, Gtk.SelectionData data, uint info, uint time) {
-		int count = 0;
-        foreach(string uri in data.get_uris()){
-			string file = uri.replace("file://","").replace("file:/","");
-			file = Uri.unescape_string (file);
-
-			if (file.has_suffix(".deb")){
-				//App.copy_deb_file(file);
-				count++;
-			}
-		}
-
-		if (count > 0){
-			string msg = _("DEB files were copied to backup location.");
-			//gtk_messagebox(_("Files Copied"), msg, this, false);
-		}
-
-        Gtk.drag_finish (drag_context, true, false, time);
-    }
 
 	protected override void cmb_status_refresh() {
 
@@ -156,7 +149,7 @@ public class PackageManager : ManagerBox {
 		cmb_status.active = 0;
 	}
 
-	/*private void cmb_section_refresh() {
+	private void cmb_section_refresh() {
 
 		log_debug("PackageManager.treeview_refresh()");
 		
@@ -164,13 +157,34 @@ public class PackageManager : ManagerBox {
 		TreeIter iter;
 		store.append(out iter);
 		store.set (iter, 0, _("All"));
-		//foreach (string section in App.sections) {
-		//	store.append(out iter);
-		//	store.set (iter, 0, section);
-		//}
-		cmb_pkg_section.set_model(store);
-		cmb_pkg_section.active = 0;
-	}*/
+
+		sections = new Gee.ArrayList<string>();
+
+		foreach(var item in items){
+			if (!sections.contains(item.section)){
+				if (item.section.strip().length == 0){ continue; }
+				if (item.section.down() == "unknown"){ continue; }
+				sections.add(item.section);
+			}
+		}
+
+		sections.sort();
+		
+		foreach (var section in sections) {
+			store.append(out iter);
+			store.set (iter, 0, section);
+		}
+		
+		cmb_section.set_model(store);
+		cmb_section.active = 0;
+
+		if (sections.size > 2){
+			gtk_show(cmb_section);
+		}
+		else{
+			gtk_hide(cmb_section);
+		}
+	}
 
 	protected override bool filter_items_filter(Gtk.TreeModel model, Gtk.TreeIter iter) {
 
@@ -287,23 +301,38 @@ public class PackageManager : ManagerBox {
 			break;
 		}
 
-		//switch (cmb_pkg_section.active) {
-		//case 0: //all
+		switch (cmb_section.active) {
+		case 0: //all
 			//exclude nothing
-			//break;
-		//default:
-			//if (item.section != gtk_combobox_get_value(cmb_pkg_section, 0, ""))
-			//{
-			//	display = false;
-			//}
-			//break;
-		//}
+			break;
+		default:
+			string section_selected = gtk_combobox_get_value(cmb_section, 0, "");
+			//log_debug(section_selected);
+			if (item.section != section_selected)
+			{
+				display = false;
+			}
+			break;
+		}
 
 		return display;
 	}
 
-	protected override void btn_restore_clicked() {
+	protected override void backup_init() {
+		
+		base.backup_init();
 
-		base.btn_restore_clicked();
+		cmb_section_refresh();
+
+		cmb_section.active = 0;
+	}
+
+	protected override void restore_init() {
+		
+		base.restore_init();
+
+		cmb_section_refresh();
+
+		cmb_section.active = 0;
 	}
 }
