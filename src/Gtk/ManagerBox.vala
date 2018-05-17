@@ -830,6 +830,8 @@ public class ManagerBox : Gtk.Box {
 		log_debug("count=%d".printf(items.size));
 
 		select_items_for_backup();
+
+		load_selections();
 		
 		is_running = false;
 	}
@@ -915,6 +917,42 @@ public class ManagerBox : Gtk.Box {
 		log_debug("saved: %s".printf(exclude_list));
 
 		//log_debug("txt: %s".printf(txt));
+	}
+
+	public void load_selections(){
+
+		string basepath = App.basepath;
+
+		if (App.redist){
+			basepath = path_combine(App.basepath, "installer");
+		}
+			
+		string backup_path = create_backup_path(basepath);
+		
+		string selections_list = path_combine(backup_path, "selections.list");
+
+		if (!file_exists(selections_list)){ return; }
+
+		var exclude_list = new Gee.ArrayList<string>();
+		var include_list = new Gee.ArrayList<string>();
+	
+		foreach(string name in file_read(selections_list).split("\n")){
+			if (name.has_prefix("+ ")){
+				include_list.add(name[2:name.length]);
+			}
+			else if (name.has_prefix("- ")){
+				exclude_list.add(name[2:name.length]);
+			}
+		}
+
+		foreach(var item in items){
+			if (exclude_list.contains(item.name)){
+				item.is_selected = false;
+			}
+			else if (include_list.contains(item.name) && item.is_selectable){
+				item.is_selected = true;
+			}
+		}
 	}
 
 	public virtual string create_backup_path(string basepath){
@@ -1107,8 +1145,6 @@ public class ManagerBox : Gtk.Box {
 		//dlg.destroy();
 		remove_overlay();
 
-
-		
 		gtk_do_events();
 	}
 
@@ -1135,6 +1171,8 @@ public class ManagerBox : Gtk.Box {
 
 		log_debug("count=%d".printf(items.size));
 
+		load_selections();
+		
 		select_items_for_restore();
 
 		is_running = false;
