@@ -35,11 +35,11 @@ public class GeneralBox : Gtk.Box {
 
 	protected Gtk.Box vbox_main;
 	protected Gtk.Box vbox_installer;
-	protected Gtk.Box hbox_installer_mode;
+	//protected Gtk.Box hbox_installer_mode;
 
-	protected Gtk.ToggleButton btn_backup;
-	protected Gtk.ToggleButton btn_restore;
-	protected Gtk.ToggleButton btn_installer;
+	protected Gtk.RadioButton opt_backup;
+	protected Gtk.RadioButton opt_restore;
+	protected Gtk.RadioButton opt_installer;
 
 	protected Gtk.Entry entry_location;
 	protected Gtk.Entry entry_appname;
@@ -82,7 +82,7 @@ public class GeneralBox : Gtk.Box {
 		vbox_main.add(vbox);
 		
 		// header
-		var label = new Gtk.Label(format_text(_("Backup Path"), true, false, true));
+		var label = new Gtk.Label(format_text(_("Backup Location"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
 		//label.margin_top = 12;
@@ -185,101 +185,74 @@ public class GeneralBox : Gtk.Box {
 		//label.margin_bottom = 12;
 		vbox.add(label);
 
-		var vbox2 = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+		var vbox2 = new Gtk.Box(Gtk.Orientation.VERTICAL, 6);
 		vbox2.margin = 12;
 		vbox.add(vbox2);
 		vbox = vbox2;
+
+		// easy --------------------------------
+
+		string txt = "  <b>%s</b> - %s".printf(_("Easy"), format_text(_("Backup and Restore with a single click"), false, true, false));
+
+		var opt_easy = add_radio(vbox, txt, null);
 		
-		// backup --------------------------------
+		// advanced -------------------------
 
-		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox.add(hbox);
-		
-		var button = new Gtk.ToggleButton.with_label(_("Easy"));
-		hbox.add(button);
-		
-		sg_buttons.add_widget(button);
-		var btn_easy = button;
-		
-		label = new Gtk.Label(format_text(_("Backup and Restore with a single click"), false, true, false));
-		label.set_use_markup(true);
-		hbox.add(label);
+		txt = "  <b>%s</b> - %s".printf(_("Advanced"), format_text(_("Show advanced options for individual items"), false, true, false));
 
-		// restore -------------------------
+		var opt_advanced = add_radio(vbox, txt, opt_easy);
+	
+		// expert -------------------------
 
-		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox.add(hbox);
+		txt = "  <b>%s</b> - %s".printf(_("Expert"), format_text(_("Show all advanced options"), false, true, false));
 
-		button = new Gtk.ToggleButton.with_label(_("Advanced"));
-		hbox.add(button);
-		
-		sg_buttons.add_widget(button);
-		var btn_advanced = button;
-
-		label = new Gtk.Label(format_text(_("Show advanced options for individual items"), false, true, false));
-		label.set_use_markup(true);
-		hbox.add(label);
-
-		// installer -------------------------
-
-		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox.add(hbox);
-
-		button = new Gtk.ToggleButton.with_label(_("Expert"));
-		hbox.add(button);
-		
-		sg_buttons.add_widget(button);
-		var btn_expert = button;
-
-		label = new Gtk.Label(format_text(_("Show all advanced options"), false, true, false));
-		label.set_use_markup(true);
-		hbox.add(label);
-
+		var opt_expert = add_radio(vbox, txt, opt_advanced);
+	
 		// events -----------------------
 		
-		btn_easy.clicked.connect(() => {
-			if (btn_easy.active){
-				btn_advanced.active = false;
-				btn_expert.active = false;
+		opt_easy.clicked.connect(() => {
+			if (opt_easy.active){
+				opt_advanced.active = false;
+				opt_expert.active = false;
 				App.guimode = GUIMode.EASY;
 				window.guimode_changed();
 			}
-			else if (!btn_easy.active && !btn_advanced.active && !btn_expert.active){
-				btn_easy.active = true;
+			else if (!opt_easy.active && !opt_advanced.active && !opt_expert.active){
+				opt_easy.active = true;
 			}
 		});
 
-		btn_advanced.clicked.connect(() => {
-			if (btn_advanced.active){
-				btn_easy.active = false;
-				btn_expert.active = false;
+		opt_advanced.clicked.connect(() => {
+			if (opt_advanced.active){
+				opt_easy.active = false;
+				opt_expert.active = false;
 				App.guimode = GUIMode.ADVANCED;
 				window.guimode_changed();
 			}
-			else if (!btn_easy.active && !btn_advanced.active && !btn_expert.active){
-				btn_advanced.active = true;
+			else if (!opt_easy.active && !opt_advanced.active && !opt_expert.active){
+				opt_advanced.active = true;
 			}
 		});
 		
-		btn_expert.clicked.connect(() => {
-			if (btn_expert.active){
-				btn_easy.active = false;
-				btn_advanced.active = false;
+		opt_expert.clicked.connect(() => {
+			if (opt_expert.active){
+				opt_easy.active = false;
+				opt_advanced.active = false;
 				App.guimode = GUIMode.EXPERT;
 				window.guimode_changed();
 			}
-			else if (!btn_easy.active && !btn_advanced.active && !btn_expert.active){
-				btn_expert.active = true;
+			else if (!opt_easy.active && !opt_advanced.active && !opt_expert.active){
+				opt_expert.active = true;
 			}
 		});
 
 		window.guimode_changed.connect(()=>{
 
 			if (cmd_exists("aptik-gen")){
-				gtk_show(hbox_installer_mode);
+				gtk_show(opt_installer);
 			}
 			else{
-				gtk_hide(hbox_installer_mode);
+				gtk_hide(opt_installer);
 			}
 
 			/*switch(App.guimode){
@@ -301,13 +274,13 @@ public class GeneralBox : Gtk.Box {
 
 		switch (App.guimode){
 		case GUIMode.EASY:
-			btn_easy.active = true;
+			opt_easy.active = true;
 			break;
 		case GUIMode.ADVANCED:
-			btn_advanced.active = true;
+			opt_advanced.active = true;
 			break;
 		case GUIMode.EXPERT:
-			btn_expert.active = true;
+			opt_expert.active = true;
 			break;
 		}
 	}
@@ -325,128 +298,98 @@ public class GeneralBox : Gtk.Box {
 		//label.margin_bottom = 12;
 		vbox.add(label);
 
-		var vbox2 = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+		var vbox2 = new Gtk.Box(Gtk.Orientation.VERTICAL, 6);
 		vbox2.margin = 12;
 		vbox.add(vbox2);
 		vbox = vbox2;
 		
 		// backup --------------------------------
 
-		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox.add(hbox);
-		
-		var button = new Gtk.ToggleButton.with_label(_("Backup"));
-		hbox.add(button);
-		
-		sg_buttons.add_widget(button);
-		btn_backup = button;
+		string txt = "  <b>%s</b> - %s".printf(_("Backup"), format_text(_("Create backups for current system"), false, true, false));
 
-		button.set_size_request(200, 40);
+		opt_backup = add_radio(vbox, txt, null);
 		
-		label = new Gtk.Label(format_text(_("Create backups for current system"), false, true, false));
-		label.set_use_markup(true);
-		hbox.add(label);
-
 		// restore -------------------------
 
-		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox.add(hbox);
+		txt = "  <b>%s</b> - %s".printf(_("Restore"), format_text(_("Restore backups on new system"), false, true, false));
 
-		button = new Gtk.ToggleButton.with_label(_("Restore"));
-		hbox.add(button);
-		
-		sg_buttons.add_widget(button);
-		btn_restore = button;
-
-		label = new Gtk.Label(format_text(_("Restore backups on new system"), false, true, false));
-		label.set_use_markup(true);
-		hbox.add(label);
+		opt_restore = add_radio(vbox, txt, opt_backup);
 
 		// installer -------------------------
 
-		hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
-		vbox.add(hbox);
-		hbox_installer_mode = hbox;
-		
-		button = new Gtk.ToggleButton.with_label(_("Create Installer"));
-		hbox.add(button);
-		
-		sg_buttons.add_widget(button);
-		btn_installer = button;
+		txt = "  <b>%s</b> - %s".printf(_("Create Installer"), format_text(_("Create installer to share with friends"), false, true, false));
 
-		label = new Gtk.Label(format_text(_("Create installer to share with friends"), false, true, false));
-		label.set_use_markup(true);
-		hbox.add(label);
-
+		opt_installer = add_radio(vbox, txt, opt_restore);
+		
 		// events -----------------------
 		
-		btn_backup.clicked.connect(btn_backup_clicked);
+		opt_backup.clicked.connect(opt_backup_clicked);
 
-		btn_restore.clicked.connect(btn_restore_clicked);
+		opt_restore.clicked.connect(opt_restore_clicked);
 		
-		btn_installer.clicked.connect(btn_installer_clicked);
+		opt_installer.clicked.connect(opt_installer_clicked);
 
 		// set initial state ---------------------
 		
-		btn_backup.active = (App.mode == Mode.BACKUP) && !App.redist;
+		opt_backup.active = (App.mode == Mode.BACKUP) && !App.redist;
 		
-		btn_restore.active = (App.mode == Mode.RESTORE);
+		opt_restore.active = (App.mode == Mode.RESTORE);
 
-		btn_installer.active = (App.mode == Mode.BACKUP) && App.redist;
+		opt_installer.active = (App.mode == Mode.BACKUP) && App.redist;
 	}
 
-	public void btn_backup_clicked(){
+	public void opt_backup_clicked(){
 
-		if (!btn_backup.active){ return; }
+		if (!opt_backup.active){ return; }
 		
-		log_debug("GeneralBox: btn_backup_clicked()");
+		log_debug("GeneralBox: opt_backup_clicked()");
 
 		App.mode = Mode.BACKUP;
 		App.redist = false;
 
-		btn_backup.active = true;
+		opt_backup.active = true;
 		
-		btn_restore.active = false;
+		opt_restore.active = false;
 
-		btn_installer.active = false;
+		opt_installer.active = false;
 
 		window.mode_changed();
 		window.guimode_changed();
 	}
 
-	public void btn_restore_clicked(){
+	public void opt_restore_clicked(){
 
-		if (!btn_restore.active){ return; }
+		if (!opt_restore.active){ return; }
 		
-		log_debug("GeneralBox: btn_restore_clicked()");
+		log_debug("GeneralBox: opt_restore_clicked()");
 
 		App.mode = Mode.RESTORE;
 		App.redist = false;
 
-		btn_backup.active = false;
+		opt_backup.active = false;
 		
-		btn_restore.active = true;
+		opt_restore.active = true;
 
-		btn_installer.active = false;
+		opt_installer.active = false;
 
 		window.mode_changed();
 		window.guimode_changed();
 	}
 
-	public void btn_installer_clicked(){
+	public void opt_installer_clicked(){
 
-		if (!btn_installer.active){ return; }
+		if (!opt_installer.active){ return; }
 		
-		log_debug("GeneralBox: btn_installer_clicked()");
+		log_debug("GeneralBox: opt_installer_clicked()");
 		
 		App.mode = Mode.BACKUP;
 		App.redist = true;
 
-		btn_backup.active = false;
+		opt_backup.active = false;
 		
-		btn_restore.active = false;
+		opt_restore.active = false;
 
-		btn_installer.active = true;
+		opt_installer.active = true;
 
 		window.mode_changed();
 		window.guimode_changed();
