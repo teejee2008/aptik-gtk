@@ -130,7 +130,7 @@ public class GeneralBox : Gtk.Box {
 		hbox.pack_start (button, false, true, 0);
 
 		button.clicked.connect(() => {
-			if (check_backup_folder()) {
+			if (window.check_backup_folder()) {
 				exo_open_folder(App.basepath, false);
 			}
 		});
@@ -157,19 +157,6 @@ public class GeneralBox : Gtk.Box {
 		}
 
 		chooser.destroy();
-	}
-
-	private bool check_backup_folder() {
-		
-		if (dir_exists (entry_location.text)) {
-			return true;
-		}
-		else {
-			string title = _("Backup Location Not Found");
-			string msg = _("Select a valid path for backup location");
-			gtk_messagebox(title, msg, window, false);
-			return false;
-		}
 	}
 
 	private void init_ui_mode_gui_mode() {

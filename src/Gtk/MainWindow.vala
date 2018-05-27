@@ -562,6 +562,18 @@ public class MainWindow : Window {
 		}
 	}
 
+	public bool check_backup_folder() {
+		
+		if (!dir_exists(App.basepath)) {
+			string title = _("Path Not Found");
+			string msg = "%s\n\n%s\n\n%s".printf(_("Path Not Found"), App.basepath, _("Select a valid path for backup location"));
+			gtk_messagebox(title, msg, this, false);
+			return false;
+		}
+
+		return true;
+	}
+	
 	// actions ------------------------------
 	
 	public void execute(string cmd, bool _switch_to_terminal, bool _show_action_result_on_exit, bool _refresh_on_exit){

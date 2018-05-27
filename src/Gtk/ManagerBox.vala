@@ -864,6 +864,8 @@ public class ManagerBox : Gtk.Box {
 			return;
 		}
 
+		if (!window.check_backup_folder()){ return; }
+
 		save_selections();
 		
 		// save backup ---------------------
@@ -1092,7 +1094,7 @@ public class ManagerBox : Gtk.Box {
 			}
 		}
 	}
-	
+
 	// restore
 	
 	protected virtual void restore_init() {
@@ -1215,6 +1217,8 @@ public class ManagerBox : Gtk.Box {
 			return;
 		}
 
+		if (!window.check_backup_folder()){ return; }
+		
 		save_selections();
 		
 		// restore backup ---------------------
