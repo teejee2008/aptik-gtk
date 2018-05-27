@@ -566,12 +566,17 @@ public class MainWindow : Window {
 		
 		if (!dir_exists(App.basepath)) {
 			string title = _("Path Not Found");
-			string msg = "%s\n\n%s\n\n%s".printf(_("Path Not Found"), App.basepath, _("Select a valid path for backup location"));
+			string msg = "%s:\n\n%s\n\n%s".printf(_("Path Not Found"), App.basepath, _("Select a valid path for backup location"));
 			gtk_messagebox(title, msg, this, false);
+			switch_to_general_page();
 			return false;
 		}
 
 		return true;
+	}
+
+	public void switch_to_general_page() {
+		stack.visible_child_name = "general";
 	}
 	
 	// actions ------------------------------
