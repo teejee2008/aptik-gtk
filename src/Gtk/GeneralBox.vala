@@ -179,21 +179,24 @@ public class GeneralBox : Gtk.Box {
 
 		// easy --------------------------------
 
-		string txt = "  <b>%s</b> - %s".printf(_("Easy"), format_text(_("Backup and Restore with a single click"), false, true, false));
-
-		var opt_easy = add_radio(vbox, txt, null);
+		string txt = "  <b>%s</b>".printf(_("Easy"));
+		string subtext = format_text(_("Backup and Restore with a single click"), false, true, false);
+		
+		var opt_easy = add_radio_option(vbox, txt, subtext, null);
 		
 		// advanced -------------------------
 
-		txt = "  <b>%s</b> - %s".printf(_("Advanced"), format_text(_("Show advanced options for individual items"), false, true, false));
-
-		var opt_advanced = add_radio(vbox, txt, opt_easy);
-	
+		txt = "  <b>%s</b>".printf(_("Advanced"));
+		subtext = format_text(_("Show advanced options for individual items"), false, true, false);
+		
+		var opt_advanced = add_radio_option(vbox, txt, subtext, opt_easy);
+			
 		// expert -------------------------
 
-		txt = "  <b>%s</b> - %s".printf(_("Expert"), format_text(_("Show all advanced options"), false, true, false));
-
-		var opt_expert = add_radio(vbox, txt, opt_advanced);
+		txt = "  <b>%s</b>".printf(_("Expert"));
+		subtext = format_text(_("Show all advanced options"), false, true, false);
+		
+		var opt_expert = add_radio_option(vbox, txt, subtext, opt_advanced);
 	
 		// events -----------------------
 		
@@ -236,10 +239,12 @@ public class GeneralBox : Gtk.Box {
 		window.guimode_changed.connect(()=>{
 
 			if (cmd_exists("aptik-gen")){
-				gtk_show(opt_installer);
+				opt_installer.visible = true;
+				//gtk_show(opt_installer);
 			}
 			else{
-				gtk_hide(opt_installer);
+				opt_installer.visible = false;
+				//gtk_hide(opt_installer);
 			}
 
 			/*switch(App.guimode){
@@ -292,21 +297,24 @@ public class GeneralBox : Gtk.Box {
 		
 		// backup --------------------------------
 
-		string txt = "  <b>%s</b> - %s".printf(_("Backup"), format_text(_("Create backups for current system"), false, true, false));
-
-		opt_backup = add_radio(vbox, txt, null);
+		string txt = "  <b>%s</b>".printf(_("Backup"));
+		string subtext = format_text(_("Create backups for current system"), false, true, false);
+		
+		opt_backup = add_radio_option(vbox, txt, subtext, null);
 		
 		// restore -------------------------
 
-		txt = "  <b>%s</b> - %s".printf(_("Restore"), format_text(_("Restore backups on new system"), false, true, false));
-
-		opt_restore = add_radio(vbox, txt, opt_backup);
+		txt = "  <b>%s</b>".printf(_("Restore"));
+		subtext = format_text(_("Restore backups on new system"), false, true, false);
+		
+		opt_restore = add_radio_option(vbox, txt, subtext, opt_backup);
 
 		// installer -------------------------
 
-		txt = "  <b>%s</b> - %s".printf(_("Create Installer"), format_text(_("Create installer to share with friends"), false, true, false));
-
-		opt_installer = add_radio(vbox, txt, opt_restore);
+		txt = "  <b>%s</b>".printf(_("Create Installer"));
+		subtext = format_text(_("Create installer to share with friends"), false, true, false);
+		
+		opt_installer = add_radio_option(vbox, txt, subtext, opt_restore);
 		
 		// events -----------------------
 		
@@ -325,6 +333,60 @@ public class GeneralBox : Gtk.Box {
 		opt_installer.active = (App.mode == Mode.BACKUP) && App.redist;
 	}
 
+	private Gtk.SizeGroup sg_radio;
+	
+	private Gtk.RadioButton add_radio_option(Gtk.Box box, string text, string subtext, Gtk.RadioButton? another_radio_in_group){
+
+		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
+		box.add(hbox);
+		
+		Gtk.RadioButton radio = null;
+
+		if (another_radio_in_group == null){
+			radio = new Gtk.RadioButton(null);
+		}
+		else{
+			radio = new Gtk.RadioButton.from_widget(another_radio_in_group);
+		}
+
+		radio.label = text;
+
+		hbox.add(radio);
+
+		if (sg_radio == null){
+			sg_radio = new Gtk.SizeGroup(SizeGroupMode.HORIZONTAL);
+		}
+		
+		sg_radio.add_widget(radio);
+
+		var label = new Gtk.Label("- " + subtext);
+		label.use_markup = true;
+		hbox.add(label);
+
+		radio.notify["sensitive"].connect(()=>{
+			label.sensitive = radio.sensitive;
+		});
+
+		radio.notify["visible"].connect(()=>{
+			label.visible = radio.visible;
+			label.no_show_all = radio.no_show_all;
+		});
+
+		radio.notify["no_show_all"].connect(()=>{
+			label.no_show_all = radio.no_show_all;
+		});
+		
+		foreach(var child in radio.get_children()){
+			if (child is Gtk.Label){
+				var lbl = (Gtk.Label) child;
+				lbl.use_markup = true;
+				break;
+			}
+		}
+		
+		return radio;
+	}
+	
 	public void opt_backup_clicked(){
 
 		if (!opt_backup.active){ return; }

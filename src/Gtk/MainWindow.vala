@@ -117,6 +117,8 @@ public class MainWindow : Window {
 			term.shell_exited.connect(on_term_shell_exited);
 			
 			term.start_shell(true);
+
+			guimode_changed();
 			
 			return false;
 		});

@@ -89,7 +89,7 @@ public class SettingsBox : Gtk.Box {
 		// ---------------------
 		
 		var separator = new Gtk.Separator(Gtk.Orientation.VERTICAL);
-		separator.margin = 24;
+		separator.margin = 48;
 		//separator.margin_right = 24;
 		box.add(separator);
 
