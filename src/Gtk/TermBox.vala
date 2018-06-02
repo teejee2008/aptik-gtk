@@ -90,8 +90,8 @@ public class TermBox : Gtk.Box {
 		term.rewrap_on_resize = true;
 		term.allow_bold = false;
 
-		term.scroll_on_keystroke = true;
-		term.scroll_on_output = true;
+		term.scroll_on_keystroke = false;
+		term.scroll_on_output = false;
 		term.scrollback_lines = 100000;
 
 		var fontdesc = Pango.FontDescription.from_string("liberation mono,droid sans mono,ubuntu mono,monospace regular 10");
