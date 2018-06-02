@@ -403,6 +403,8 @@ public class ManagerBox : Gtk.Box {
 
 			model_filter.convert_iter_to_child_iter(out child_iter, filter_iter);
 			store.set(child_iter, 0, item.is_selected, -1);
+
+			save_selections_delayed();
 		}
 	}
 
@@ -421,6 +423,8 @@ public class ManagerBox : Gtk.Box {
 			
 		(cell as Gtk.CellRendererText).text = item.desc;
 	}
+
+	// actions
 	
 	protected void init_actions() {
 
@@ -431,7 +435,8 @@ public class ManagerBox : Gtk.Box {
 		hbox_actions = box;
 
 		var bbox1 = new Gtk.ButtonBox(Orientation.HORIZONTAL);
-		bbox1.set_layout(Gtk.ButtonBoxStyle.EXPAND);
+		bbox1.set_spacing(3);
+		//bbox1.set_layout(Gtk.ButtonBoxStyle.EXPAND);
 		box.add(bbox1);
 
 		bbox_selection = bbox1;
@@ -444,9 +449,9 @@ public class ManagerBox : Gtk.Box {
 		bbox_execute = bbox2;
 
 		//btn_select_all
-		var button = new Gtk.Button();
-		button.set_image(IconManager.lookup_image("checkbox-checked-symbolic", 16));
-		button.always_show_image = true;
+		var button = new Gtk.Button.with_label(_("Select All"));
+		//button.set_image(IconManager.lookup_image("checkbox-checked-symbolic", 16));
+		//button.always_show_image = true;
 		button.set_tooltip_text(_("Select All"));
 		bbox1.add(button);
 
@@ -478,12 +483,14 @@ public class ManagerBox : Gtk.Box {
 			}
 			
 			treeview_refresh();
+
+			save_selections();
 		});
 
 		//btn_select_none
-		button = new Gtk.Button();
-		button.set_image(IconManager.lookup_image("checkbox-symbolic", 16));
-		button.always_show_image = true;
+		button = new Gtk.Button.with_label(_("Select None"));
+		//button.set_image(IconManager.lookup_image("checkbox-symbolic", 16));
+		//button.always_show_image = true;
 		button.set_tooltip_text(_("Select None"));
 		bbox1.add(button);
 
@@ -515,12 +522,14 @@ public class ManagerBox : Gtk.Box {
 			}
 			
 			treeview_refresh();
+
+			save_selections();
 		});
 
 		//btn_select_reset
-		button = new Gtk.Button();
-		button.set_image(IconManager.lookup_image("view-refresh-symbolic", 16));
-		button.always_show_image = true;
+		button = new Gtk.Button.with_label(_("Reset"));
+		//button.set_image(IconManager.lookup_image("view-refresh-symbolic", 16));
+		//button.always_show_image = true;
 		button.set_tooltip_text(_("Reset Selections"));
 		bbox1.add(button);
 
@@ -538,6 +547,8 @@ public class ManagerBox : Gtk.Box {
 			}
 			
 			treeview_refresh();
+
+			save_selections();
 		});
 
 		//btn_backup
@@ -896,8 +907,25 @@ public class ManagerBox : Gtk.Box {
 		});
 	}
 
+	private uint tmr_save_selections = 0;
+	
+	public void save_selections_delayed(){
+
+		if (tmr_save_selections > 0){
+			Source.remove(tmr_save_selections);
+		}
+
+		Timeout.add(300, ()=>{
+			save_selections();
+			tmr_save_selections = 0;
+			return false;
+		});
+	}
+	
 	public void save_selections(){
 
+		log_debug("save_selections()");
+		
 		string basepath = App.basepath;
 
 		if (App.redist){
