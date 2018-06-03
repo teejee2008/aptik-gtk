@@ -820,9 +820,13 @@ public class ManagerBox : Gtk.Box {
 		log_debug("ManagerBox.backup_init_thread()");
 		
 		items.clear();
-		
+
 		string std_out, std_err;
 		string cmd = "aptik --dump-%s".printf(item_type);
+
+		if ((App.distro.dist_type == "arch") && (item_type == "mounts")){
+			cmd = "pkexec " + cmd;
+		}
 
 		if (append_basepath_for_backup){
 			cmd += " --basepath '%s'".printf(escape_single_quote(App.basepath));
@@ -1186,8 +1190,12 @@ public class ManagerBox : Gtk.Box {
 
 		string std_out, std_err;
 		string cmd = "aptik --dump-%s-backup".printf(item_type);
-
+		
 		cmd += " --basepath '%s'".printf(escape_single_quote(App.basepath));
+
+		if ((App.distro.dist_type == "arch") && (item_type == "mounts")){
+			cmd = "pkexec " + cmd;
+		}
 		
 		log_debug("$ " + cmd);
 		
