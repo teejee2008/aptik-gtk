@@ -1,3 +1,24 @@
+aptik-gtk (18.6) xenial; urgency=medium
+
+  * Packages: Added dropdown filter for package category
+
+  * Remember selections for every run
+
+  * Use radio buttons for selecting UI and backup mode
+
+  * Added additional checks to verify if backup path is valid
+
+  * Switch to General page if path is invalid
+
+  * Fixed scrolling issue with terminal
+
+  * Mounts: Prompt user for listing crypttab entries on Arch Linux
+  
+  * UI improvements
+
+ -- Tony George <tony.george.kol@gmail.com>  Sat, 30 Jun 2018 10:00:00 +0530
+
+
 aptik-gtk (18.5.2) xenial; urgency=medium
 
   * Added options for selecting UI layout - simple, advanced, and expert
