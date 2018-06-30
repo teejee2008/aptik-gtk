@@ -12,9 +12,24 @@ man1dir=$(mandir)/man1
 app_name=aptik-gtk
 app_fullname='Aptik NG GTK'
 
+# vte -----------------------------
+
+vte_symbol = -D VTE_291
+vte_version=$(shell { (pkg-config --modversion vte-2.91 | cut -d. -f2); } )
+
+ifeq ($(shell { test ${vte_version} -lt 52 ; echo $$? ; } ), 0)
+vte_symbol=$(shell echo '-D VTE_291_OLD')
+else
+vte_symbol=$(shell echo '-D VTE_291')
+endif
+
+# symbols --------------------------
+
+symbols=$(shell echo "${vte_symbol}")
+
 all:
 	# aptik-gtk
-	valac -X -D'GETTEXT_PACKAGE="${app_name}"' --Xcc="-lm" --thread \
+	valac -X -D'GETTEXT_PACKAGE="${app_name}"' --Xcc="-lm" ${symbols} --thread \
 		*.vala Gtk/*.vala Utility/Console/*.vala Utility/Gtk/*.vala Utility/*.vala \
 		-o ${app_name} \
 		--pkg glib-2.0 \

@@ -13,6 +13,8 @@ aptik-gtk (18.6) xenial; urgency=medium
   * Fixed scrolling issue with terminal
 
   * Mounts: Prompt user for listing crypttab entries on Arch Linux
+
+  * Fixed build issue with newer version of libvte291
   
   * UI improvements
 
