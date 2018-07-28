@@ -10,7 +10,7 @@ Homepage: http://teejeetech.blogspot.in/
 
 Package: aptik-gtk
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, apt, aptitude, apt-transport-https, pv
+Depends: ${shlibs:Depends}, ${misc:Depends}, apt, aptitude, apt-transport-https, pv, dconf-cli
 #Recommends:
 Replaces: aptik
 Description: System migration utility for Linux (GTK Frontend)

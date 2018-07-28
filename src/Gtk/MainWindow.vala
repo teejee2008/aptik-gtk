@@ -172,17 +172,28 @@ public class MainWindow : Window {
 		}
 		
 		string std_out, std_err;
-		exec_sync("aptik --version", out std_out, out std_err);
-		string aptik_version = std_out.strip();
-		
-		if (AppVersion != aptik_version){
+		exec_sync("aptik --version-cli", out std_out, out std_err);
+		string aptik_cli_version = std_out.strip();
+
+		int version_required = int.parse(AptikVersionRequired.replace(".",""));
+
+		int version_found = 0;
+
+		if (aptik_cli_version.length > 0){
+			version_found = int.parse(aptik_cli_version.replace(".",""));
+		}
+		else{
+			aptik_cli_version = "Unknown";
+		}
+
+		if (version_required != version_found){
 			
 			string txt = _("Version Mismatch");
 			
-			string msg = "%s\n\n%s (v%s)\n\n%s (v%s)\n".printf(
-				_("GUI version does not match console version. Please install same version of 'aptik' and 'aptik-gtk' packages."),
-				_("aptik-gtk"), AppVersion,
-				_("aptik"), aptik_version
+			string msg = "%s\n\n%s: %s\n\n%s: %s\n".printf(
+				_("Please install the latest version of 'aptik'."),
+				_("Required"), AptikVersionRequired,
+				_("Found"), aptik_cli_version
 			);
 
 			gtk_messagebox(txt, msg, this, true);
