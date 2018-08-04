@@ -60,7 +60,7 @@ public class DonationWindow : Gtk.Window {
 
 		//get_action_area().visible = false;
 
-		string msg = _("Did you find this application useful?\n\nYou can buy me a coffee or make a donation via PayPal to show your support.\n\nThis application is free and will continue to remain that way. Your contributions will help keep the project alive and support future development.");
+		string msg = _("Did you find this application useful? You can buy me a coffee or make a donation via PayPal to show your support. This application is free and will continue to remain that way. Your contributions will help keep the project alive and support future development.\n\nI sometimes create exclusive plugins and addons for people who donate. You can make a donation for $10 or more by PayPal to receive the plugins by email. See the \"Donation Features\" link below for more details.\n\nPlease use the GitHub issue tracker for reporting issues and requesting features.");
 
 		/*msg += "\n\nIf you make a donation to this project you will receive a plugin as a special gift. This plugin generates a stand-alone installer from the backup files. The installer can be executed on a fresh Linux installation to transform it to the original system. You can distribute this installer as a \"transformation pack\" to create your own customized distribution.\n\nThanks,\nTony George";*/
 		
@@ -96,19 +96,19 @@ public class DonationWindow : Gtk.Window {
 		}
 
 		// donation_features
-		//var button = new Gtk.LinkButton.with_label("", _("Donation Features"));
-		//button.set_tooltip_text("https://github.com/teejee2008/polo/wiki/Donation-Features");
-		//vbox_main.add(button);
-		//button.clicked.connect(() => {
-		//	xdg_open("https://github.com/teejee2008/polo/wiki/Donation-Features", username);
-		//});
+		var button = new Gtk.LinkButton.with_label("", _("Donation Features"));
+		button.set_tooltip_text("https://github.com/teejee2008/aptik/wiki/Donation-Features");
+		vbox_main.add(button);
+		button.clicked.connect(() => {
+			xdg_open("https://github.com/teejee2008/aptik/wiki/Donation-Features", username);
+		});
 		
 		// donate paypal
-		var button = new Gtk.LinkButton.with_label("", _("Donate with PayPal"));
+		button = new Gtk.LinkButton.with_label("", _("Donate with PayPal"));
 		button.set_tooltip_text("Donate to: teejeetech@gmail.com");
 		vbox_main.add(button);
 		button.clicked.connect(() => {
-			xdg_open("https://www.paypal.com/cgi-bin/webscr?business=teejeetech@gmail.com&cmd=_xclick&currency_code=USD&amount=10&item_name=Polo%20Donation", username);
+			xdg_open("https://www.paypal.com/cgi-bin/webscr?business=teejeetech@gmail.com&cmd=_xclick&currency_code=USD&amount=10&item_name=Aptik%20Donation", username);
 		});
 
 		// patreon

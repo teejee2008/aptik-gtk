@@ -74,7 +74,7 @@ public class SettingsBox : Gtk.Box {
 		var vbox = new Gtk.Box(Orientation.VERTICAL, 6);
 		box.add(vbox);
 		
-		var label = new Gtk.Label(format_text(_("Select Items"), true, false, true));
+		var label = new Gtk.Label(format_text(_("Backup/Restore Items"), true, false, true));
 		label.set_use_markup(true);
 		label.halign = Align.START;
 		//label.margin = 12;
