@@ -121,7 +121,7 @@ public class AptikGtk : GLib.Object {
 
 	private static void set_locale() {
 		
-		Intl.setlocale(GLib.LocaleCategory.MESSAGES, "aptik");
+		Intl.setlocale(GLib.LocaleCategory.MESSAGES, "aptik-gtk");
 		Intl.textdomain(GETTEXT_PACKAGE);
 		Intl.bind_textdomain_codeset(GETTEXT_PACKAGE, "utf-8");
 		Intl.bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);

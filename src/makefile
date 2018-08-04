@@ -10,7 +10,7 @@ mandir=$(sharedir)/man
 man1dir=$(mandir)/man1
 
 app_name=aptik-gtk
-app_fullname='Aptik NG GTK'
+app_fullname='Aptik GTK'
 
 # vte -----------------------------
 
@@ -29,7 +29,7 @@ symbols=$(shell echo "${vte_symbol}")
 
 all:
 	# aptik-gtk
-	valac -X -D'GETTEXT_PACKAGE="${app_name}"' --Xcc="-lm" ${symbols} --thread \
+	valac -X -D'GETTEXT_PACKAGE="${app_name}"' --Xcc="-lm" ${symbols} --Xcc="-O3" --thread \
 		*.vala Gtk/*.vala Utility/Console/*.vala Utility/Gtk/*.vala Utility/*.vala \
 		-o ${app_name} \
 		--pkg glib-2.0 \
