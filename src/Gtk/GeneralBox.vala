@@ -461,9 +461,9 @@ public class GeneralBox : Gtk.Box {
 			var win = new VersionMessageWindow(window);
 		});
 
-		string css = "font-size: 20px; font-weight: bold;";
+		//string css = "font-size: 20px; font-weight: bold;";
 
-		gtk_apply_css({ btn }, css);
+		//gtk_apply_css({ btn }, css);
 
 		expander = new Gtk.Label(""); 
 		expander.vexpand = true; 

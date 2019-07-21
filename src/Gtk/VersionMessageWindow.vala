@@ -87,12 +87,12 @@ public class VersionMessageWindow : Gtk.Window {
 		hbox_contents.margin = 6;
 		vbox_main.add (hbox_contents);
 
-		string icon_name = "gtk-dialog-info";
+		//string icon_name = "gtk-dialog-info";
 		
 		// img
-		var img = new Image.from_icon_name(icon_name, Gtk.IconSize.DIALOG);
+		//var img = new Image.from_icon_name(icon_name, Gtk.IconSize.DIALOG);
 		//img.margin_right = 12;
-		hbox_contents.add(img);
+		//hbox_contents.add(img);
 
 		// vbox_msg
 		var vbox_msg = new Gtk.Box(Orientation.VERTICAL, 24);
@@ -123,7 +123,7 @@ public class VersionMessageWindow : Gtk.Window {
 		//website
 		var link = new LinkButton("https://teejeetech.in/2019/07/14/aptik-v19-07/");
 		link.xalign = 0.0f;
-		link.margin_top = 5;
+		//link.margin_top = 5;
 		vbox_msg.add(link);
 
 		link.activate_link.connect(()=>{
