@@ -119,6 +119,8 @@ public class MainWindow : Window {
 			term.start_shell(true);
 
 			guimode_changed();
+
+			show_paid_version_message();
 			
 			return false;
 		});
@@ -719,6 +721,17 @@ public class MainWindow : Window {
 
 	public void set_sidebar_sensitive(bool _sensitive){
 		sidebar.sensitive = _sensitive;
+	}
+
+	public void show_paid_version_message(){
+		
+		if (!App.message_shown){
+			
+			App.message_shown = true;
+			App.save_settings();
+
+			var win = new VersionMessageWindow(this);
+		}
 	}
 }
 

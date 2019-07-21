@@ -259,6 +259,8 @@ public class TermBox : Gtk.Box {
 			cmd = "%s\n".printf(cmd);
 		}
 
+		
+		
 		#if VTE_291_OLD
 		
 		term.feed_child(cmd, -1);

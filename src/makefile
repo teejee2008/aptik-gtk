@@ -15,12 +15,19 @@ app_fullname='Aptik GTK'
 # vte -----------------------------
 
 vte_symbol = -D VTE_291
-vte_version=$(shell { (pkg-config --modversion vte-2.91 | cut -d. -f2); } )
+vte_version=$(shell { (pkg-config --modversion vte-2.91 | cut -d. -f 2); } )
+vala_version=$(shell { (valac --version | cut -d. -f 2); } )
+dist_id=$(shell { (lsb_release -i -s); } )
+dist_codename=$(shell { (lsb_release -c -s); } )
 
 ifeq ($(shell { test ${vte_version} -lt 52 ; echo $$? ; } ), 0)
 vte_symbol=$(shell echo '-D VTE_291_OLD')
+#else ifeq "${dist_codename}" "bionic"
+#vte_symbol=$(shell echo '-D VTE_291_OLD')
+#else ifeq "${dist_codename}" "xenial"
+#vte_symbol=$(shell echo '-D VTE_291_OLD')
 else
-vte_symbol=$(shell echo '-D VTE_291')
+vte_symbol=$(shell echo '-D VTE_291_OLD')
 endif
 
 # symbols --------------------------
@@ -29,7 +36,7 @@ symbols=$(shell echo "${vte_symbol}")
 
 all:
 	# aptik-gtk
-	valac -X -D'GETTEXT_PACKAGE="${app_name}"' --Xcc="-lm" ${symbols} --Xcc="-O3" --thread \
+	valac -X -D'GETTEXT_PACKAGE="${app_name}"' --Xcc="-lm" ${symbols} --Xcc="-O3" \
 		*.vala Gtk/*.vala Utility/Console/*.vala Utility/Gtk/*.vala Utility/*.vala \
 		-o ${app_name} \
 		--pkg glib-2.0 \

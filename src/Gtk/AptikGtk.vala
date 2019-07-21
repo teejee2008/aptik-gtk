@@ -36,7 +36,7 @@ using TeeJee.GtkHelper;
 
 public const string AppName = "Aptik GTK";
 public const string AppShortName = "aptik-gtk";
-public const string AppVersion = "18.8";
+public const string AppVersion = "18.8.1";
 public const string AptikVersionRequired = "18.08.0";
 public const string AppAuthor = "Tony George";
 public const string AppAuthorEmail = "teejeetech@gmail.com";
@@ -79,6 +79,8 @@ public class AptikGtk : GLib.Object {
 
 	public bool exclude_home_encrypted = true;
 	public bool exclude_home_hidden = false;
+
+	public bool message_shown = false;
 
 	public bool redist = false;
 
@@ -204,6 +206,8 @@ public class AptikGtk : GLib.Object {
 		save_param(ConfigParam.INC_FILES, include_files.to_string());
 		save_param(ConfigParam.INC_SCRIPTS, include_scripts.to_string());
 
+		save_param(ConfigParam.MESSAGE_SHOWN, message_shown.to_string());
+
 		save_param(ConfigParam.EXC_PKG_ICONS, exclude_pkg_icons.to_string());
 		save_param(ConfigParam.EXC_PKG_THEMES, exclude_pkg_themes.to_string());
 		save_param(ConfigParam.EXC_PKG_FONTS, exclude_pkg_fonts.to_string());
@@ -248,6 +252,8 @@ public class AptikGtk : GLib.Object {
 		exclude_pkg_themes  = load_param_bool(ConfigParam.EXC_PKG_THEMES,  false);
 		exclude_pkg_fonts   = load_param_bool(ConfigParam.EXC_PKG_FONTS,   false);
 		include_pkg_foreign = load_param_bool(ConfigParam.EXC_PKG_FOREIGN, false);
+
+		message_shown = load_param_bool(ConfigParam.MESSAGE_SHOWN, false);
 
 		exclude_home_encrypted = load_param_bool(ConfigParam.EXC_HOME_ENC, true);
 		exclude_home_hidden = load_param_bool(ConfigParam.EXC_HOME_HIDDEN, false);
@@ -310,6 +316,7 @@ public enum ConfigParam {
 	EXC_HOME_HIDDEN,
 	MODE,
 	GUIMODE,
-	REDIST
+	REDIST,
+	MESSAGE_SHOWN
 }
 
