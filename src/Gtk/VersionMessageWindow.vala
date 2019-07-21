@@ -56,7 +56,7 @@ public class VersionMessageWindow : Gtk.Window {
 
 		msg_title = _("New Version Available");
 
-		msg_body = _("This version of Aptik is more than a year old and is no longer maintained. There may be issues when restoring to newer distributions.\n\nA paid version of Aptik is now available with more features and better support.");
+		msg_body = _("This version of Aptik is more than a year old and is no longer maintained. There may be issues when restoring to newer distributions.\n\nA paid version of Aptik is now available with more features.");
 
 		msg_body = "<span size=\"large\" weight=\"bold\">%s</span>\n\n%s".printf(msg_title, msg_body);
 		
@@ -64,7 +64,7 @@ public class VersionMessageWindow : Gtk.Window {
 
 		show_all();
 
-		set_size_request(350, 200);
+		set_size_request(500, 200);
 	}
 
 	public void init_window () {
@@ -91,12 +91,12 @@ public class VersionMessageWindow : Gtk.Window {
 		
 		// img
 		var img = new Image.from_icon_name(icon_name, Gtk.IconSize.DIALOG);
-		img.margin_right = 12;
+		//img.margin_right = 12;
 		hbox_contents.add(img);
 
 		// vbox_msg
 		var vbox_msg = new Gtk.Box(Orientation.VERTICAL, 24);
-		vbox_msg.margin_right = 6;
+		//vbox_msg.margin_right = 6;
 		hbox_contents.add(vbox_msg);
 
 		// lbl_msg
@@ -108,15 +108,27 @@ public class VersionMessageWindow : Gtk.Window {
 		lbl_msg.wrap_mode = Pango.WrapMode.WORD;
 		//hbox_contents.add(lbl_msg);
 
+		vbox_msg.add(lbl_msg);
+		
 		// sw_msg
-		sw_msg = new ScrolledWindow(null, null);
+		//sw_msg = new ScrolledWindow(null, null);
 		//sw_msg.set_shadow_type (ShadowType.ETCHED_IN);
-		sw_msg.add (lbl_msg);
-		sw_msg.expand = true;
-		sw_msg.hscrollbar_policy = PolicyType.NEVER;
-		sw_msg.vscrollbar_policy = PolicyType.AUTOMATIC;
+		//sw_msg.add (lbl_msg);
+		//sw_msg.expand = true;
+		//sw_msg.hscrollbar_policy = PolicyType.NEVER;
+		//sw_msg.vscrollbar_policy = PolicyType.AUTOMATIC;
 		//sw_msg.set_size_request();
-		vbox_msg.add(sw_msg);
+		//vbox_msg.add(sw_msg);
+
+		//website
+		var link = new LinkButton("https://teejeetech.in/2019/07/14/aptik-v19-07/");
+		link.xalign = 0.0f;
+		link.margin_top = 5;
+		vbox_msg.add(link);
+
+		link.activate_link.connect(()=>{
+			return xdg_open("https://teejeetech.in/2019/07/14/aptik-v19-07/"); 
+		});
 
 		// actions
 		var hbox_actions = new Gtk.Box(Orientation.HORIZONTAL, 6);

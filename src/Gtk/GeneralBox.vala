@@ -449,6 +449,26 @@ public class GeneralBox : Gtk.Box {
 		var expander = new Gtk.Label(""); 
 		expander.vexpand = true; 
 		vbox_main.add(expander);
+
+		var bbox1 = new Gtk.ButtonBox(Orientation.HORIZONTAL);
+		bbox1.set_layout(Gtk.ButtonBoxStyle.CENTER);
+		vbox_main.add(bbox1);
+
+		var btn = new Gtk.Button.with_label("New Version Available");
+		bbox1.add(btn);
+		
+		btn.clicked.connect(()=>{
+			var win = new VersionMessageWindow(window);
+		});
+
+		string css = "font-size: 20px; font-weight: bold;";
+
+		gtk_apply_css({ btn }, css);
+
+		expander = new Gtk.Label(""); 
+		expander.vexpand = true; 
+		vbox_main.add(expander);
+		
     
 		var hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6); 
 		//hbox.margin_bottom = 6; 
@@ -459,19 +479,19 @@ public class GeneralBox : Gtk.Box {
 
 		var bbox = add_link_box();
 		
-		var button = new Gtk.LinkButton.with_label("", _("Donate")); 
-		bbox.add(button);
+		//var button = new Gtk.LinkButton.with_label("", _("Donate")); 
+		//bbox.add(button);
     
-		button.clicked.connect(() => {
-			var win = new DonationWindow(window); 
-			win.show(); 
-		});
+		//button.clicked.connect(() => {
+		//	var win = new DonationWindow(window); 
+		//	win.show(); 
+		//});
 	
 		// user manual
 
 		//bbox = add_link_box();
 		
-		button = new Gtk.LinkButton.with_label("", _("User Manual")); 
+		var button = new Gtk.LinkButton.with_label("", _("User Manual")); 
 		bbox.add(button);
 
 		button.clicked.connect(() => { 

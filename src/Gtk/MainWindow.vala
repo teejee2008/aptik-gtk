@@ -120,6 +120,11 @@ public class MainWindow : Window {
 
 			guimode_changed();
 
+			return false;
+		});
+
+		Timeout.add(20000, ()=>{
+			
 			show_paid_version_message();
 			
 			return false;
