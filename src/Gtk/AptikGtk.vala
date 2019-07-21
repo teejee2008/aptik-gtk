@@ -36,7 +36,7 @@ using TeeJee.GtkHelper;
 
 public const string AppName = "Aptik GTK";
 public const string AppShortName = "aptik-gtk";
-public const string AppVersion = "18.8.1";
+public const string AppVersion = "18.8.2";
 public const string AptikVersionRequired = "18.08.0";
 public const string AppAuthor = "Tony George";
 public const string AppAuthorEmail = "teejeetech@gmail.com";

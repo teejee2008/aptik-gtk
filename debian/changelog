@@ -1,3 +1,9 @@
+aptik-gtk (18.8.2) bionic; urgency=medium
+
+  * Reduced size of new version button
+
+ -- Tony George <tony.george.kol@gmail.com>  Sun, 21 Jul 2019 10:00:00 +0530
+
 aptik-gtk (18.8.1) bionic; urgency=medium
 
   * Add message
