@@ -263,7 +263,7 @@ public class TermBox : Gtk.Box {
 		
 		#if VTE_291_OLD
 		
-		term.feed_child(cmd, -1);
+		term.feed_child(cmd.to_utf8());
 
 		#else
 
